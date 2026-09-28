@@ -26,7 +26,7 @@ Log.Logger = new LoggerConfiguration()
 
 try
 {
-    Log.Information("Aplikace startuje");
+    Log.ForContext("SourceContext", "Program").Information("Aplikace startuje");
 
     var builder = WebApplication.CreateBuilder(args);
 
@@ -121,10 +121,10 @@ try
 catch (Exception ex)
 {
     // zaznamenani fatalni chyby pri startu
-    Log.Fatal(ex, "Aplikace selhala při startu");
+    Log.ForContext("SourceContext", "Program").Fatal(ex, "Aplikace selhala při startu");
 }
 finally
 {
-    Log.Information("Aplikace ukončena");
+    Log.ForContext("SourceContext", "Program").Information("Aplikace ukončena");
     Log.CloseAndFlush();
 }

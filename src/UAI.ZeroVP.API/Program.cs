@@ -122,6 +122,7 @@ catch (Exception ex)
 {
     // zaznamenani fatalni chyby pri startu
     Log.ForContext("SourceContext", "Program").Fatal(ex, "Aplikace selhala při startu");
+    throw;
 }
 finally
 {

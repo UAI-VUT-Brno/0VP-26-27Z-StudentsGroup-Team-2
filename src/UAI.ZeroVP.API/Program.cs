@@ -17,7 +17,7 @@ Log.Logger = new LoggerConfiguration()
     // Zapis do souboru /logs
     .WriteTo.File(
         // umisteni cilove slozky
-        path: "logs/app-.log",
+        path: Path.Combine(AppContext.BaseDirectory, "logs", "app-.log"),
         // kazdy den o se vytvori novy soubor pro logs
         rollingInterval: RollingInterval.Day,
         // presna struktura 

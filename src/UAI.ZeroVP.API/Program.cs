@@ -5,6 +5,14 @@ using UAI.ZeroVP.Data.InMemory;
 using Serilog;
 using Serilog.Events;
 
+// Logy ukladame do uzivatelskych dat aplikace: C:\Users\<Username>\AppData\Local\UAI.ZeroVP\logs
+// (standardni misto pro runtime data, neni potreba admin prav). Na Linuxu/v kontejneru
+// to odpovida ~/.local/share/UAI.ZeroVP/logs; kdyz slozku nelze urcit, zustane vedle aplikace.
+var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+var logDirectory = string.IsNullOrEmpty(localAppData)
+    ? Path.Combine(AppContext.BaseDirectory, "logs")
+    : Path.Combine(localAppData, "UAI.ZeroVP", "logs");
+
 Log.Logger = new LoggerConfiguration()
     // Zaznamenává zprávy od úrovně 'Information' výše (Info, Warning, Error, Fatal).
     .MinimumLevel.Information()
@@ -14,10 +22,10 @@ Log.Logger = new LoggerConfiguration()
     .Enrich.FromLogContext()
     // Vypis do terminalu
     .WriteTo.Console()
-    // Zapis do souboru /logs
+    // Zapis do souboru v logDirectory
     .WriteTo.File(
         // umisteni cilove slozky
-        path: Path.Combine(AppContext.BaseDirectory, "logs", "app-.log"),
+        path: Path.Combine(logDirectory, "app-.log"),
         // kazdy den o se vytvori novy soubor pro logs
         rollingInterval: RollingInterval.Day,
         // presna struktura 

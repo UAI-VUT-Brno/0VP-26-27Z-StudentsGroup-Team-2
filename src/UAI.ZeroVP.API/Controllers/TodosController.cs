@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using UAI.ZeroVP.API.Mapping;
 using UAI.ZeroVP.Data.Abstractions;
 using UAI.ZeroVP.DTO;
@@ -43,11 +43,13 @@ public sealed class TodosController : ControllerBase
     }
 
     /// <summary>Vrátí jeden úkol podle identifikátoru.</summary>
+    /// <param name="id">Jednoznačný identifikátor úkolu.</param>
+    /// <param name="cancellationToken">Token pro zrušení operace.</param>
     /// <response code="200">Nalezený úkol.</response>
     /// <response code="404">Úkol se zadaným identifikátorem neexistuje.</response>
     [HttpGet("{id:guid}", Name = nameof(GetById))]
     [ProducesResponseType(typeof(TodoItemDto), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<ActionResult<TodoItemDto>> GetById(Guid id, CancellationToken cancellationToken)
     {
         var item = await _repository.GetByIdAsync(id, cancellationToken);
@@ -56,6 +58,8 @@ public sealed class TodosController : ControllerBase
     }
 
     /// <summary>Založí nový úkol.</summary>
+    /// <param name="request">Data pro vytvoření nového úkolu.</param>
+    /// <param name="cancellationToken">Token pro zrušení operace.</param>
     /// <response code="201">Úkol byl vytvořen; hlavička <c>Location</c> odkazuje na nový zdroj.</response>
     /// <response code="400">Vstupní data neprošla validací.</response>
     [HttpPost]
@@ -74,13 +78,16 @@ public sealed class TodosController : ControllerBase
     }
 
     /// <summary>Přepíše existující úkol novými hodnotami.</summary>
+    /// <param name="id">Jednoznačný identifikátor úkolu.</param>
+    /// <param name="request">Nová data pro úplnou aktualizaci úkolu.</param>
+    /// <param name="cancellationToken">Token pro zrušení operace.</param>
     /// <response code="200">Aktualizovaný úkol.</response>
     /// <response code="400">Vstupní data neprošla validací.</response>
     /// <response code="404">Úkol se zadaným identifikátorem neexistuje.</response>
     [HttpPut("{id:guid}")]
     [ProducesResponseType(typeof(TodoItemDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<ActionResult<TodoItemDto>> Update(
         Guid id,
         [FromBody] UpdateTodoItemRequest request,
@@ -100,11 +107,13 @@ public sealed class TodosController : ControllerBase
     }
 
     /// <summary>Označí úkol za dokončený.</summary>
+    /// <param name="id">Jednoznačný identifikátor úkolu.</param>
+    /// <param name="cancellationToken">Token pro zrušení operace.</param>
     /// <response code="200">Úkol po změně stavu.</response>
     /// <response code="404">Úkol se zadaným identifikátorem neexistuje.</response>
     [HttpPost("{id:guid}/complete")]
     [ProducesResponseType(typeof(TodoItemDto), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<ActionResult<TodoItemDto>> Complete(Guid id, CancellationToken cancellationToken)
     {
         var entity = await _repository.GetByIdAsync(id, cancellationToken);
@@ -121,11 +130,13 @@ public sealed class TodosController : ControllerBase
     }
 
     /// <summary>Smaže úkol.</summary>
+    /// <param name="id">Jednoznačný identifikátor úkolu.</param>
+    /// <param name="cancellationToken">Token pro zrušení operace.</param>
     /// <response code="204">Úkol byl smazán.</response>
     /// <response code="404">Úkol se zadaným identifikátorem neexistuje.</response>
     [HttpDelete("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
         if (!await _repository.DeleteAsync(id, cancellationToken))

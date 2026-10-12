@@ -16,18 +16,17 @@ Tento dokument slouží k evidenci aktivity týmu, sledování procesu vývoje (
 | Datum | Člen týmu | Aktivita / Typ zásahu | Větev / PR | Commit / Hash | Reviewer | Výsledek / Stav | 
 | ----- | ----- | ----- | ----- | ----- | ----- | ----- | 
 | *2026-10-12* | @Castulik | Založení struktury issues, zadání a inicializace worklogu | `main` | `init` | – | Dokončeno | 
-| *2026-10-12* | @pmikes1 | Tvorba `ResponseTimeMiddleware.cs` a registrace v pipeline | `feature/api-profiling` | PR #... | @Castulik | *Čeká na review* | 
-| *2026-10-12* | @stepanch284 | Příprava zátěžových testů v `tests/load-tests/` a `README.md` | `feature/load-testing` | PR #... | @Castulik | *Čeká na review* | 
-| *2026-10-12* | @luxat26 | Doplnění anotací `[ProducesResponseType]` a XML komentářů | `feature/openapi-docs` | PR #... | @Castulik | *Čeká na review* | 
+| *2026-10-12* | @pmikes1 | Tvorba `ResponseTimeMiddleware.cs`, hlavička `X-Response-Time-Ms`, varování nad 500 ms | `feature/api-profiling` | PR | @Castulik | V revizi (doplnění unit testů) | 
+| *2026-10-12* | @stepanch284 | Příprava zátěžových testů v k6 (`tests/load-tests/`), dokumentace a spouštěcí návod | `feature/load-testing` | PR | @Castulik | Schváleno / Merged | 
+| *2026-10-12* | @luxat26 | Doplnění `[ProducesResponseType]`, RFC 9457 ProblemDetails schémat a XML ukázek | `feature/openapi-docs` | PR | @Castulik | Schváleno / Merged | 
 
 ## 3. Poznámky k průběhu a řešení problémů (Retrospektiva)
 
-*Tato sekce slouží pro záznam případných komplikací, které během řešení nastaly (např. překročení thresholdů latence, git konflikty, nejasnosti v modelech).*
+* **Issue 9 (Latence & Zátěžové testy):**
+  * **@pmikes1:** `ResponseTimeMiddleware` vrací hlavičku `X-Response-Time-Ms` a při překročení limitu 500 ms zapisuje varování do logu. Běžná odezva serveru je pod 1 ms.
+  * **@stepanch284:** Zátěžový scénář v k6 potvrdil 0,00% chybovost a bezpečné splnění limitu 500 ms:
+    * *50 uživatelů:* 4 130 požadavků, p(95) = 2,13 ms.
 
-* **Issue 1 (Latence & Testy):**
-
-  * *Záznam:* [Zde po dokončení uveďte shrnutí naměřených hodnot odezvy v zátěži.]
-
-* **Issue 2 (OpenAPI):**
-
-  * *Záznam:* [Zde uveďte potvrzení shody s OpenAPI 3.x schématem a ověření ve Swagger UI.]
+* **Issue 10 (OpenAPI & Swagger):**
+  * **@luxat26:** U všech 404 odpovědí doplněny anotace `[ProducesResponseType(typeof(ProblemDetails), 404)]` dle RFC 9457. Doplněny XML `<param>` značky a `<example>` ukázky v DTO modelech.
+  * Specifikace na `/openapi/v1.json` plně odpovídá OpenAPI 3.1, Swagger UI na `/swagger` je funkční a všech 55 testů prochází bez chyb.

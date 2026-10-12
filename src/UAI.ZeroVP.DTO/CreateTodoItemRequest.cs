@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace UAI.ZeroVP.DTO;
 
@@ -16,15 +16,18 @@ public sealed record CreateTodoItemRequest
     /// z <c>[Required]</c> by se ke klientovi nikdy nedostala.
     /// </para>
     /// </summary>
+    /// <example>Dokončit semestrální projekt</example>
     [Required(AllowEmptyStrings = false, ErrorMessage = "Název úkolu je povinný.")]
     [StringLength(200, MinimumLength = 1, ErrorMessage = "Název musí mít 1 až 200 znaků.")]
     public string Title { get; init; } = string.Empty;
 
     /// <summary>Volitelný popis, maximálně 1000 znaků.</summary>
+    /// <example>Doplnit OpenAPI dokumentaci a otestovat ve Swagger UI.</example>
     [StringLength(1000, ErrorMessage = "Popis smí mít nejvýše 1000 znaků.")]
     public string? Description { get; init; }
 
     /// <summary>Priorita úkolu. Výchozí hodnota je <see cref="TodoPriority.Normal"/>.</summary>
+    /// <example>Normal</example>
     [EnumDataType(typeof(TodoPriority), ErrorMessage = "Neplatná hodnota priority.")]
     public TodoPriority Priority { get; init; } = TodoPriority.Normal;
 }

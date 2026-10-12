@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.Reflection;
 using Microsoft.AspNetCore.Mvc;
 using UAI.ZeroVP.Data.Abstractions;
@@ -28,6 +28,7 @@ public sealed class InfoController : ControllerBase
     }
 
     /// <summary>Vrátí informace o běžící instanci API.</summary>
+    /// <param name="cancellationToken">Token pro zrušení operace.</param>
     /// <response code="200">Popis instance včetně počtu úkolů v paměti.</response>
     [HttpGet]
     [ProducesResponseType(typeof(InstanceInfoDto), StatusCodes.Status200OK)]

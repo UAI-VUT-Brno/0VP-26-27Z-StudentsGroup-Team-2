@@ -1,5 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 using Microsoft.OpenApi;
+using UAI.ZeroVP.API.Middleware;
 using UAI.ZeroVP.Data.DependencyInjection;
 using UAI.ZeroVP.Data.InMemory;
 using Serilog;
@@ -90,6 +91,10 @@ try
     var swaggerEnabled = app.Configuration.GetValue("Swagger:Enabled", app.Environment.IsDevelopment());
 
     // --- HTTP pipeline --------------------------------------------------------
+
+    // Měření odezvy je první v pipeline, aby zahrnulo zpracování celého požadavku.
+    // Přidá hlavičku X-Response-Time-Ms a nad 500 ms zaloguje varování.
+    app.UseMiddleware<ResponseTimeMiddleware>();
 
     // Bez přesměrování na HTTPS: v kontejneru se vystavuje pouze HTTP port
     // a TLS řeší až reverzní proxy před ním.

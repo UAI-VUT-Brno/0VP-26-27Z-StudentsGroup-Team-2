@@ -34,17 +34,17 @@ jobs:
 
             Steps:
             1. Read the issue: `gh issue view ${{ github.event.issue.number }}`.
-            2. Read the earlier manual splits and copy their structure, tone and language (Czech) closely:
+            2. Read the earlier manual splits and copy their structure and tone closely (they are in Czech, but you write in English):
                `gh issue view 9 -R UAI-VUT-Brno/0VP-26-27Z-StudentsGroup-Team-2 --comments` (parallel branches, one per member) and
                `gh issue view 1 -R UAI-VUT-Brno/0VP-26-27Z-StudentsGroup-Team-2 --comments` (shared branch with a relay hand-off, for when work cannot be parallel).
             3. Explore the repository (src/, tests/, README.md, WORKLOG.md) so that you name real files, classes and methods.
-            4. Write the split as ONE comment in Czech, in the same format as the template comment:
-               - heading "### Rozdělení úkolů: <short topic>"
+            4. Write the split as ONE comment in English, in the same format as the template comment:
+               - heading "### Task split: <short topic>"
                - the process line: branch creation → commit → pull request → code review → merge → branch delete; nobody writes to `main`
-               - "Pravidla pro všechny": a branch name `feature/<name>` (or `fix/<name>`) per member and the git commands to create it
-               - "Rozdělení práce": a section "#### 👤 @member – <topic>" per developer with **Větev**, **Vymezený prostor a soubory**
-                 and **Cíl** as an unchecked `- [ ]` checklist
-               - "Co dělám já (Team Leader)" section like in the template
+               - "Rules for everyone": a branch name `feature/<name>` (or `fix/<name>`) per member and the git commands to create it
+               - "Work split": a section "#### 👤 @member – <topic>" per developer with **Branch**, **Assigned area and files**
+                 and **Goals** as an unchecked `- [ ]` checklist
+               - "What I do (Team Leader)" section like in the template
                Split the work so that no two members edit the same file, so they can work at the same time without git conflicts.
                If a shared file (e.g. Program.cs, a .csproj, an interface) must change, give it to exactly one member and say
                who depends on it. Use as many developers as the issue really needs; not every issue needs all three.

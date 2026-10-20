@@ -8,14 +8,16 @@ on:
 
 jobs:
   split:
-    if: github.event.action == 'opened' || github.event.label.name == 'split'
+    # Only people with repo access: the issue text goes into the prompt and runs on our Claude subscription.
+    if: >-
+      contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.issue.author_association) &&
+      (github.event.action == 'opened' || github.event.label.name == 'split')
     runs-on: ubuntu-latest
     permissions:
       contents: read
       issues: write
-      id-token: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - uses: anthropics/claude-code-action@v1
         env:

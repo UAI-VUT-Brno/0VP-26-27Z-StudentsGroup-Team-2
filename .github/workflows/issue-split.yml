@@ -1,0 +1,55 @@
+# Splits a new issue into per-member work packages, the same way the team leader did by hand in #1, #9 and #10.
+# Re-run on an existing issue by adding the `split` label.
+name: Issue split
+
+on:
+  issues:
+    types: [opened, labeled]
+
+jobs:
+  split:
+    if: github.event.action == 'opened' || github.event.label.name == 'split'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: anthropics/claude-code-action@v1
+        env:
+          GH_TOKEN: ${{ github.token }}
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          github_token: ${{ github.token }}
+          claude_args: |
+            --allowedTools "Read,Write,Glob,Grep,Bash(gh issue view:*),Bash(gh issue comment:*),Bash(gh issue edit:*)"
+          prompt: |
+            You are helping the team leader of this student team split issue #${{ github.event.issue.number }} into work for team members.
+
+            Team:
+            - @Castulik: team leader (does code review, merges into main, deletes branches, keeps WORKLOG.md). Never gets dev work.
+            - Developers: @pmikes1, @stepanch284, @luxat26
+
+            Steps:
+            1. Read the issue: `gh issue view ${{ github.event.issue.number }}`.
+            2. Read the earlier manual splits and copy their structure, tone and language (Czech) closely:
+               `gh issue view 9 -R UAI-VUT-Brno/0VP-26-27Z-StudentsGroup-Team-2 --comments` (parallel branches, one per member) and
+               `gh issue view 1 -R UAI-VUT-Brno/0VP-26-27Z-StudentsGroup-Team-2 --comments` (shared branch with a relay hand-off, for when work cannot be parallel).
+            3. Explore the repository (src/, tests/, README.md, WORKLOG.md) so that you name real files, classes and methods.
+            4. Write the split as ONE comment in Czech, in the same format as the template comment:
+               - heading "### Rozdělení úkolů: <short topic>"
+               - the process line: branch creation → commit → pull request → code review → merge → branch delete; nobody writes to `main`
+               - "Pravidla pro všechny": a branch name `feature/<name>` (or `fix/<name>`) per member and the git commands to create it
+               - "Rozdělení práce": a section "#### 👤 @member – <topic>" per developer with **Větev**, **Vymezený prostor a soubory**
+                 and **Cíl** as an unchecked `- [ ]` checklist
+               - "Co dělám já (Team Leader)" section like in the template
+               Split the work so that no two members edit the same file, so they can work at the same time without git conflicts.
+               If a shared file (e.g. Program.cs, a .csproj, an interface) must change, give it to exactly one member and say
+               who depends on it. Use as many developers as the issue really needs; not every issue needs all three.
+               Every acceptance criterion of the issue must be covered by somebody's checklist.
+            5. Post it: `gh issue comment ${{ github.event.issue.number }} --body-file <file>` (write the body to a file first).
+            6. Assign the developers you used: `gh issue edit ${{ github.event.issue.number }} --add-assignee <login>,...`.
+
+            Do not change any files in the repository and do not touch any other issue.

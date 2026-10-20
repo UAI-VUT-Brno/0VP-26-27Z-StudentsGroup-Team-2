@@ -31,8 +31,9 @@ jobs:
             You are helping the team leader of this student team split issue #${{ github.event.issue.number }} into work for team members.
 
             Team:
-            - @Castulik: team leader (does code review, merges into main, deletes branches, keeps WORKLOG.md). Never gets dev work.
-            - Developers: @pmikes1, @stepanch284, @luxat26
+            - @Castulik: team leader and developer. Also does code review, merges into main, deletes branches and keeps WORKLOG.md,
+              so give @Castulik a smaller share. Nobody reviews their own PR: @Castulik's PR is reviewed by another member.
+            - Developers: @Castulik, @pmikes1, @stepanch284, @luxat26
 
             Steps:
             1. Read the issue: `gh issue view ${{ github.event.issue.number }}`.
@@ -49,7 +50,7 @@ jobs:
                - "What I do (Team Leader)" section like in the template
                Split the work so that no two members edit the same file, so they can work at the same time without git conflicts.
                If a shared file (e.g. Program.cs, a .csproj, an interface) must change, give it to exactly one member and say
-               who depends on it. Use as many developers as the issue really needs; not every issue needs all three.
+               who depends on it. Use as many developers as the issue really needs; not every issue needs all four.
                Every acceptance criterion of the issue must be covered by somebody's checklist.
             5. Post it: `gh issue comment ${{ github.event.issue.number }} --body-file <file>` (write the body to a file first).
             6. Assign the developers you used: `gh issue edit ${{ github.event.issue.number }} --add-assignee <login>,...`.

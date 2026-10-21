@@ -1,5 +1,7 @@
 # UAI.ZeroVP – ukázkové API pro výuku Dockeru
 
+[![CI](https://github.com/UAI-VUT-Brno/0VP-26-27Z-StudentsGroup-Team-2/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/UAI-VUT-Brno/0VP-26-27Z-StudentsGroup-Team-2/actions/workflows/ci.yml?query=branch%3Amain)
+
 Jednoduché REST API pro správu úkolů (ToDo), rozdělené do tří projektů.
 Slouží jako výchozí bod pro navazující lekce o kontejnerizaci.
 
@@ -106,6 +108,38 @@ curl -X POST http://localhost:5258/api/todos \
   -d '{"title":"Napsat Dockerfile","priority":"High"}'
 curl http://localhost:5258/api/info
 ```
+
+## Continuous Integration
+
+Workflow `CI` (`.github/workflows/ci.yml`) běží v GitHub Actions automaticky:
+
+- při každém pushi do `main`, `feature/**` a `fix/**`,
+- u každého pull requestu do `main`.
+
+Na `ubuntu-latest` s .NET `10.0.x` provede `dotnet restore`, sestavení solution
+v konfiguraci Release a `dotnet test` (projekt `tests/UAI.ZeroVP.UnitTests`).
+Chyba kompilace nebo neprošlý test shodí celý běh. Novější push do stejné větve
+zruší starší, ještě běžící běh.
+
+Stejnou kontrolu lze spustit lokálně z kořene repozitáře:
+
+```bash
+dotnet restore UAI.ZeroVP.sln
+dotnet build UAI.ZeroVP.sln --no-restore -c Release
+dotnet test UAI.ZeroVP.sln --no-build -c Release
+```
+
+**Pull request smí být sloučen jen tehdy, když je `CI` zelený.**
+Když běh selže:
+
+1. V PR klikněte u kontroly `CI` na *Details*, případně otevřete záložku **Actions**
+   a vyberte červený běh.
+2. V jobu `build-and-test` rozbalte krok označený ❌ – `Build` znamená chybu
+   kompilace, `Test` neprošlý test (název testu a hláška `Assert` jsou ve výpisu).
+3. Chybu opravte lokálně, ověřte příkazy výše a pushněte do stejné větve –
+   CI se spustí znovu.
+
+Odznak nahoře ukazuje stav posledního běhu na `main`.
 
 ## Poznámka ke kódování
 

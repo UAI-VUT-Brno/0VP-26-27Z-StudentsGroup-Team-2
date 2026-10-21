@@ -1,0 +1,42 @@
+# Builds the solution and runs the unit tests – must be green before merging into main.
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+      - 'fix/**'
+  pull_request:
+    branches:
+      - main
+
+# A newer push to the same branch (or PR) cancels the older run that is still in progress.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+          cache: true
+          cache-dependency-path: '**/*.csproj'
+
+      - name: Restore
+        run: dotnet restore UAI.ZeroVP.sln
+
+      - name: Build
+        run: dotnet build UAI.ZeroVP.sln --no-restore -c Release
+
+      - name: Test
+        run: dotnet test UAI.ZeroVP.sln --no-build -c Release --verbosity normal

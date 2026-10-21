@@ -41,3 +41,26 @@ Content-Type: application/json
 ### Neexistující úkol – vrátí 404 s ProblemDetails
 GET {{UAI.ZeroVP.API_HostAddress}}/api/todos/00000000-0000-0000-0000-000000000000
 Accept: application/json
+
+
+### Nová týdenní řada úkolů (platný požadavek -> 201 Created)
+POST {{UAI.ZeroVP.API_HostAddress}}/api/todos/repeat
+Content-Type: application/json
+
+{
+  "title": "Týdenní záloha databáze",
+  "description": "Spustit zálohovací skript a zkontrolovat integritu.",
+  "priority": "High",
+  "firstDueAtUtc": "2026-10-26T08:00:00Z",
+  "repeatCount": 3
+}
+
+### Neplatná týdenní řada úkolů (neplatný repeatCount -> 400 Bad Request)
+POST {{UAI.ZeroVP.API_HostAddress}}/api/todos/repeat
+Content-Type: application/json
+
+{
+  "title": "Chybný počet opakování",
+  "firstDueAtUtc": "2026-10-26T08:00:00Z",
+  "repeatCount": 0
+}

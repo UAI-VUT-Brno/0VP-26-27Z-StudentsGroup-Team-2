@@ -24,7 +24,7 @@ v sekci [Výukové materiály k Dockeru](#výukové-materiály-k-dockeru).
 
 | Projekt | Typ | Obsah | Závislosti |
 |---|---|---|---|
-| `UAI.ZeroVP.DTO` | Class library | Kontrakt API – `TodoItemDto`, `CreateTodoItemRequest`, `UpdateTodoItemRequest`, `InstanceInfoDto`, výčet `TodoPriority` | žádné |
+| `UAI.ZeroVP.DTO` | Class library | Kontrakt API – `TodoItemDto`, `CreateTodoItemRequest`, `RepeatTodoItemRequest`, `UpdateTodoItemRequest`, `InstanceInfoDto`, výčet `TodoPriority` | žádné |
 | `UAI.ZeroVP.Data` | Class library | Entita `TodoItem`, rozhraní `ITodoRepository`, paměťová implementace `InMemoryTodoRepository`, registrace do DI | `DTO` |
 | `UAI.ZeroVP.API` | ASP.NET Core Web API | Kontrolery, mapování entita ↔ DTO, konfigurace pipeline | `DTO`, `Data` |
 
@@ -72,9 +72,34 @@ API naslouchá na `http://localhost:5258`. Kořen `/` přesměruje na Swagger UI
 | `GET` | `/health` | Kontrola zdraví – použije ji `HEALTHCHECK` v Dockerfile |
 | `GET` | `/swagger` | Interaktivní dokumentace Swagger UI |
 | `GET` | `/openapi/v1.json` | Popis API ve formátu OpenAPI |
+| `POST` | `/api/todos` | Založení úkolu → `201 Created` + hlavička `Location` |
+| `POST` | `/api/todos/repeat` | Založení týdenní řady úkolů → `201 Created` + hlavička `Location` na `/api/todos` |
+| `PUT` | `/api/todos/{id}` | Úplná aktualizace úkolu |
 
 Chybové odpovědi mají jednotný tvar `ProblemDetails` (RFC 9457).
 Připravené požadavky k odzkoušení jsou v souboru `src/UAI.ZeroVP.API/UAI.ZeroVP.API.http`.
+
+### Týdenní opakování úkolů (`POST /api/todos/repeat`)
+
+  Endpoint slouží k hromadnému vytvoření počátečního úkolu a zadaného počtu dalších týdenních opakování v jedné atomické operaci.
+
+  **Struktura těla požadavku (`RepeatTodoItemRequest`):**
+  - `title` (string, povinný, 1–200 znaků): Název úkolu.
+  - `description` (string, volitelný, max 1000 znaků): Popis úkolu.
+  - `priority` (string/enum, výchozí `Normal`): Priorita úkolu (`Low`, `Normal`, `High`).
+  - `firstDueAtUtc` (DateTimeOffset, povinný): Datum a čas prvního výskytu v UTC.
+  - `repeatCount` (int, povinný, rozsah 1–52): Počet dalších týdenních opakování po prvním termínu.
+
+  **Příklad kalkulace termínů:**  
+  Zadání například `repeatCount: 3` vytvoří celkem **4 samostatné úkoly**:
+  1. První výskyt s termínem `firstDueAtUtc`.
+  2. Druhý výskyt s termínem `firstDueAtUtc + 7 dní`.
+  3. Třetí výskyt s termínem `firstDueAtUtc + 14 dní`.
+  4. Čtvrtý výskyt s termínem `firstDueAtUtc + 21 dní`.
+
+  Při úspěchu vrátí odpověď `201 Created` se seznamem vytvořených úkolů `TodoItemDto`, kde každý obsahuje vlastní identifikátor `id` a termín `dueAtUtc`. Běžně zakládané úkoly přes `POST /api/todos` zůstávají zpětně kompatibilní a mají `dueAtUtc: null`. Při neplatném vstupu (neplatná pole, chybějící termín, `repeatCount` mimo rozsah 1–52) vrátí API standardní `400 Bad Request` a nevytvoří žádný úkol.
+
+  > **Poznámka k rozsahu (Scope note):** Vytvořené výskyty jsou samostatné, navzájem nezávislé běžné úkoly (nejde o trvalé pravidlo opakování). Dokončení nebo smazání jednoho výskytu neovlivňuje ostatní úkoly v sérii. Úkoly jsou uloženy pouze v operační paměti a restart aplikace nepřežijí.
 
 ## Swagger
 
@@ -102,11 +127,27 @@ ASPNETCORE_ENVIRONMENT=Production Swagger__Enabled=true dotnet UAI.ZeroVP.API.dl
 ### Rychlý test
 
 ```bash
-curl http://localhost:5258/api/todos
-curl -X POST http://localhost:5258/api/todos \
+# Seznam úkolů
+  curl http://localhost:5258/api/todos
+
+# Založení jednoho úkolu
+  curl -X POST http://localhost:5258/api/todos \
+    -H "Content-Type: application/json" \
+    -d '{"title":"Napsat Dockerfile","priority":"High"}'
+
+# Založení týdenní řady úkolů (první výskyt + 3 opakování = 4 úkoly)
+  curl -X POST http://localhost:5258/api/todos/repeat \
   -H "Content-Type: application/json" \
-  -d '{"title":"Napsat Dockerfile","priority":"High"}'
-curl http://localhost:5258/api/info
+  -d '{
+    "title": "Týdenní status",
+    "description": "Pravidelný report pokroku",
+    "priority": "High",
+    "firstDueAtUtc": "2026-10-26T09:00:00Z",
+    "repeatCount": 3
+  }'
+
+# Informace o instanci
+  curl http://localhost:5258/api/info
 ```
 
 ## Continuous Integration

@@ -77,6 +77,27 @@ public sealed class TodosController : ControllerBase
         return CreatedAtRoute(nameof(GetById), new { id = created.Id }, created.ToDto());
     }
 
+    /// <summary>Vytvoří týdenní řadu opakujících se úkolů.</summary>
+    /// <param name="request">Data pro vytvoření série úkolů včetně prvního termínu a počtu opakování.</param>
+    /// <param name="cancellationToken">Token pro zrušení operace.</param>
+    /// <response code="201">Řada úkolů byla vytvořena; hlavička <c>Location</c> odkazuje na seznam úkolů.</response>
+    /// <response code="400">Vstupní data neprošla validací.</response>
+    [HttpPost("repeat")]
+    [ProducesResponseType(typeof(IReadOnlyList<TodoItemDto>), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<IReadOnlyList<TodoItemDto>>> Repeat(
+        [FromBody] RepeatTodoItemRequest request,
+        CancellationToken cancellationToken)
+    {
+        var entities = request.ToEntities(_timeProvider.GetUtcNow());
+        var created = await _repository.AddRangeAsync(entities, cancellationToken);
+
+        _logger.LogInformation("Vytvořeno {Count} opakovaných úkolů.", created.Count);
+
+        var dtos = created.Select(item => item.ToDto()).ToList();
+        return CreatedAtAction(nameof(GetAll), dtos);
+    }
+
     /// <summary>Přepíše existující úkol novými hodnotami.</summary>
     /// <param name="id">Jednoznačný identifikátor úkolu.</param>
     /// <param name="request">Nová data pro úplnou aktualizaci úkolu.</param>

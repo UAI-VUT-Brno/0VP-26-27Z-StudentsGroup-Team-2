@@ -65,6 +65,7 @@ API naslouchá na `http://localhost:5258`. Kořen `/` přesměruje na Swagger UI
 | `GET` | `/api/todos` | Seznam úkolů; volitelný filtr `?isCompleted=true\|false` |
 | `GET` | `/api/todos/{id}` | Detail úkolu |
 | `POST` | `/api/todos` | Založení úkolu → `201 Created` + hlavička `Location` |
+| `POST` | `/api/todos/repeat` | Založení týdenní řady úkolů → `201 Created` + hlavička `Location` na `/api/todos` |
 | `PUT` | `/api/todos/{id}` | Úplná aktualizace úkolu |
 | `POST` | `/api/todos/{id}/complete` | Označení úkolu za dokončený |
 | `DELETE` | `/api/todos/{id}` | Smazání úkolu → `204 No Content` |
@@ -72,9 +73,6 @@ API naslouchá na `http://localhost:5258`. Kořen `/` přesměruje na Swagger UI
 | `GET` | `/health` | Kontrola zdraví – použije ji `HEALTHCHECK` v Dockerfile |
 | `GET` | `/swagger` | Interaktivní dokumentace Swagger UI |
 | `GET` | `/openapi/v1.json` | Popis API ve formátu OpenAPI |
-| `POST` | `/api/todos` | Založení úkolu → `201 Created` + hlavička `Location` |
-| `POST` | `/api/todos/repeat` | Založení týdenní řady úkolů → `201 Created` + hlavička `Location` na `/api/todos` |
-| `PUT` | `/api/todos/{id}` | Úplná aktualizace úkolu |
 
 Chybové odpovědi mají jednotný tvar `ProblemDetails` (RFC 9457).
 Připravené požadavky k odzkoušení jsou v souboru `src/UAI.ZeroVP.API/UAI.ZeroVP.API.http`.
@@ -128,15 +126,15 @@ ASPNETCORE_ENVIRONMENT=Production Swagger__Enabled=true dotnet UAI.ZeroVP.API.dl
 
 ```bash
 # Seznam úkolů
-  curl http://localhost:5258/api/todos
+curl http://localhost:5258/api/todos
 
 # Založení jednoho úkolu
-  curl -X POST http://localhost:5258/api/todos \
+curl -X POST http://localhost:5258/api/todos \
     -H "Content-Type: application/json" \
     -d '{"title":"Napsat Dockerfile","priority":"High"}'
 
 # Založení týdenní řady úkolů (první výskyt + 3 opakování = 4 úkoly)
-  curl -X POST http://localhost:5258/api/todos/repeat \
+curl -X POST http://localhost:5258/api/todos/repeat \
   -H "Content-Type: application/json" \
   -d '{
     "title": "Týdenní status",
@@ -147,7 +145,7 @@ ASPNETCORE_ENVIRONMENT=Production Swagger__Enabled=true dotnet UAI.ZeroVP.API.dl
   }'
 
 # Informace o instanci
-  curl http://localhost:5258/api/info
+curl http://localhost:5258/api/info
 ```
 
 ## Continuous Integration

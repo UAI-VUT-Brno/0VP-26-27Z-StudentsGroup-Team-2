@@ -73,10 +73,7 @@ public sealed class TodosControllerRepeatTests
         Assert.Equal(nameof(TodosController.GetAll), created.ActionName);
 
         var dtos = Assert.IsAssignableFrom<IReadOnlyList<TodoItemDto>>(created.Value);
-
-        // DELIBERATE TEMPORARY ERROR TO TEST CI GATE:
-        // Expected count is 4, but assert 999 to verify GitHub Actions CI fails on test failure.
-        Assert.Equal(999, dtos.Count);
+        Assert.Equal(4, dtos.Count);
 
         Assert.Equal(4, capturedEntities!.Count);
 

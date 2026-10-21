@@ -30,6 +30,9 @@ public sealed class TodoItem
     /// <summary>Okamžik dokončení (UTC), nebo <c>null</c> pokud úkol hotový není.</summary>
     public DateTimeOffset? CompletedAtUtc { get; set; }
 
+    /// <summary>Due date (UTC), or <c>null</c> if the task has no due date.</summary>
+    public DateTimeOffset? DueAtUtc { get; set; }
+
     /// <summary>Interní audit – poslední změna záznamu. Do DTO se nepromítá.</summary>
     public DateTimeOffset UpdatedAtUtc { get; set; }
 
@@ -47,6 +50,7 @@ public sealed class TodoItem
         IsCompleted = IsCompleted,
         CreatedAtUtc = CreatedAtUtc,
         CompletedAtUtc = CompletedAtUtc,
+        DueAtUtc = DueAtUtc,
         UpdatedAtUtc = UpdatedAtUtc
     };
 }

@@ -20,6 +20,14 @@ public interface ITodoRepository
     /// <summary>Uloží nový úkol a vrátí jeho výslednou podobu včetně přiděleného <c>Id</c>.</summary>
     Task<TodoItem> AddAsync(TodoItem item, CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Stores several new tasks at once (e.g. weekly repetitions) and returns them in the input order.
+    /// The operation is all-or-nothing: if it fails, none of the tasks is stored.
+    /// </summary>
+    /// <param name="items">Tasks to store.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    Task<IReadOnlyList<TodoItem>> AddRangeAsync(IReadOnlyCollection<TodoItem> items, CancellationToken cancellationToken = default);
+
     /// <summary>Přepíše existující úkol. Vrací <c>false</c>, pokud záznam neexistuje.</summary>
     Task<bool> UpdateAsync(TodoItem item, CancellationToken cancellationToken = default);
 

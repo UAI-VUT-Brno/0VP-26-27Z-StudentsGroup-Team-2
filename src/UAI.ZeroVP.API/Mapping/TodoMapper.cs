@@ -18,7 +18,8 @@ public static class TodoMapper
         Priority = entity.Priority,
         IsCompleted = entity.IsCompleted,
         CreatedAtUtc = entity.CreatedAtUtc,
-        CompletedAtUtc = entity.CompletedAtUtc
+        CompletedAtUtc = entity.CompletedAtUtc,
+        DueAtUtc = entity.DueAtUtc
     };
 
     /// <summary>Vytvoří novou entitu z požadavku na založení úkolu.</summary>
@@ -35,6 +36,35 @@ public static class TodoMapper
         CompletedAtUtc = null,
         UpdatedAtUtc = nowUtc
     };
+
+    /// <summary>
+    /// Vytvoří týdenní řadu úkolů: první výskyt a <c>RepeatCount</c> dalších,
+    /// každý o přesně 7 dní později. Výskyty jsou samostatné, navzájem nezávislé úkoly.
+    /// </summary>
+    /// <param name="request">Validovaná data z těla požadavku.</param>
+    /// <param name="nowUtc">Aktuální čas – předává se zvenčí kvůli testovatelnosti.</param>
+    public static IReadOnlyList<TodoItem> ToEntities(this RepeatTodoItemRequest request, DateTimeOffset nowUtc)
+    {
+        var firstDueAtUtc = (request.FirstDueAtUtc
+            ?? throw new ArgumentException("FirstDueAtUtc je povinné.", nameof(request))).ToUniversalTime();
+        var title = request.Title.Trim();
+        var description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description.Trim();
+
+        return Enumerable.Range(0, request.RepeatCount + 1)
+            .Select(n => new TodoItem
+            {
+                Id = Guid.NewGuid(),
+                Title = title,
+                Description = description,
+                Priority = request.Priority,
+                IsCompleted = false,
+                CreatedAtUtc = nowUtc,
+                CompletedAtUtc = null,
+                DueAtUtc = firstDueAtUtc.AddDays(7 * n),
+                UpdatedAtUtc = nowUtc
+            })
+            .ToList();
+    }
 
     /// <summary>
     /// Promítne data z požadavku do existující entity.

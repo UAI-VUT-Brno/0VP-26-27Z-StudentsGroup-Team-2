@@ -76,6 +76,48 @@ public sealed class InMemoryTodoRepository : ITodoRepository
     }
 
     /// <inheritdoc />
+    public Task<IReadOnlyList<TodoItem>> AddRangeAsync(IReadOnlyCollection<TodoItem> items, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(items);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (items.Any(item => item is null))
+        {
+            throw new ArgumentNullException(nameof(items), "The collection contains a null task.");
+        }
+
+        var toStore = items.Select(item => item.Clone()).ToList();
+
+        var duplicateId = toStore.GroupBy(item => item.Id).FirstOrDefault(group => group.Count() > 1)?.Key;
+        if (duplicateId is not null)
+        {
+            throw new InvalidOperationException($"Task with ID {duplicateId} is in the batch more than once.");
+        }
+
+        // Items are inserted one by one. If an Id already exists (e.g. another thread
+        // added it in the meantime), everything this batch has added is removed again,
+        // so only part of the repetitions is never stored.
+        var added = new List<TodoItem>(toStore.Count);
+        foreach (var stored in toStore)
+        {
+            if (!_items.TryAdd(stored.Id, stored))
+            {
+                foreach (var rollback in added)
+                {
+                    _items.TryRemove(rollback.Id, out _);
+                }
+
+                throw new InvalidOperationException($"Task with ID {stored.Id} already exists.");
+            }
+
+            added.Add(stored);
+        }
+
+        IReadOnlyList<TodoItem> result = added.Select(item => item.Clone()).ToList();
+        return Task.FromResult(result);
+    }
+
+    /// <inheritdoc />
     public Task<bool> UpdateAsync(TodoItem item, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(item);

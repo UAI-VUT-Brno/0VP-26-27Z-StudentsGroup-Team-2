@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using UAI.ZeroVP.Data.Abstractions;
 using UAI.ZeroVP.Data.InMemory;
 
@@ -16,6 +17,10 @@ public static class DataServiceCollectionExtensions
     /// Singleton je zde nutnost: data drží samotná instance repozitáře,
     /// takže scoped registrace by znamenala prázdné úložiště pro každý požadavek.
     /// </para>
+    /// <para>
+    /// <see cref="TodoStorageHostedService"/> loads the tasks from
+    /// <see cref="InMemoryTodoOptions.StorageFilePath"/> on startup and saves them on shutdown.
+    /// </para>
     /// </summary>
     /// <param name="services">Kolekce služeb.</param>
     /// <param name="configure">Volitelná úprava nastavení úložiště.</param>
@@ -29,9 +34,12 @@ public static class DataServiceCollectionExtensions
         configure?.Invoke(options);
 
         services.AddSingleton(options);
-        services.AddSingleton<ITodoRepository>(sp => new InMemoryTodoRepository(
+        services.AddSingleton(sp => new InMemoryTodoRepository(
             sp.GetRequiredService<InMemoryTodoOptions>(),
-            sp.GetService<TimeProvider>()));
+            sp.GetService<TimeProvider>(),
+            sp.GetService<ILogger<InMemoryTodoRepository>>()));
+        services.AddSingleton<ITodoRepository>(sp => sp.GetRequiredService<InMemoryTodoRepository>());
+        services.AddHostedService<TodoStorageHostedService>();
 
         return services;
     }

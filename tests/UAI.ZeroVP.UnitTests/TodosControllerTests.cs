@@ -66,10 +66,10 @@ public sealed class TodosControllerTests
     {
         var items = new[] { CreateEntity("První"), CreateEntity("Druhý") };
         _repository
-            .Setup(r => r.GetAllAsync(isCompleted, It.IsAny<CancellationToken>()))
+            .Setup(r => r.GetAllAsync(isCompleted, null, It.IsAny<CancellationToken>()))
             .ReturnsAsync(items);
 
-        var result = await _controller.GetAll(isCompleted, CancellationToken.None);
+        var result = await _controller.GetAll(isCompleted, null, CancellationToken.None);
 
         var ok = Assert.IsType<OkObjectResult>(result.Result);
         Assert.Equal(StatusCodes.Status200OK, ok.StatusCode);
@@ -83,10 +83,10 @@ public sealed class TodosControllerTests
     public async Task GetAll_EmptyRepository_ReturnsOkWithEmptyList()
     {
         _repository
-            .Setup(r => r.GetAllAsync(null, It.IsAny<CancellationToken>()))
+            .Setup(r => r.GetAllAsync(null, null, It.IsAny<CancellationToken>()))
             .ReturnsAsync([]);
 
-        var result = await _controller.GetAll(null, CancellationToken.None);
+        var result = await _controller.GetAll(null, null, CancellationToken.None);
 
         var ok = Assert.IsType<OkObjectResult>(result.Result);
         Assert.Empty(Assert.IsAssignableFrom<IReadOnlyList<TodoItemDto>>(ok.Value));

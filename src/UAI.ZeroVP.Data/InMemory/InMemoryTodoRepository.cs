@@ -38,12 +38,15 @@ public sealed class InMemoryTodoRepository : ITodoRepository
     }
 
     /// <inheritdoc />
-    public Task<IReadOnlyList<TodoItem>> GetAllAsync(bool? isCompleted = null, CancellationToken cancellationToken = default)
+    public Task<IReadOnlyList<TodoItem>> GetAllAsync(bool? isCompleted = null, string? userId = null, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
+        var userFilter = string.IsNullOrWhiteSpace(userId) ? null : userId.Trim();
+
         IReadOnlyList<TodoItem> result = _items.Values
             .Where(item => isCompleted is null || item.IsCompleted == isCompleted)
+            .Where(item => userFilter is null || item.UserId?.Trim() == userFilter)
             .OrderByDescending(item => item.Priority)
             .ThenBy(item => item.CreatedAtUtc)
             .Select(item => item.Clone())

@@ -1,0 +1,24 @@
+# Výstupy sestavení na hostiteli (kontejner si aplikaci sestaví sám pro Linux).
+**/bin/
+**/obj/
+artifacts/
+
+# Verzovací systém a nastavení vývojových prostředí.
+.git/
+.github/
+.gitignore
+.vs/
+.idea/
+.vscode/
+*.user
+*.suo
+.editorconfig
+
+# Lokální runtime data, logy, zátěžové scénáře a dokumentace.
+**/data/
+*.log
+*.md
+Dockerfile*
+.dockerignore
+compose*.yaml
+docker-compose*.yml

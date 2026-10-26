@@ -19,7 +19,8 @@ public static class TodoMapper
         IsCompleted = entity.IsCompleted,
         CreatedAtUtc = entity.CreatedAtUtc,
         CompletedAtUtc = entity.CompletedAtUtc,
-        DueAtUtc = entity.DueAtUtc
+        DueAtUtc = entity.DueAtUtc,
+        UserId = entity.UserId
     };
 
     /// <summary>Vytvoří novou entitu z požadavku na založení úkolu.</summary>
@@ -34,6 +35,7 @@ public static class TodoMapper
         IsCompleted = false,
         CreatedAtUtc = nowUtc,
         CompletedAtUtc = null,
+        UserId = NormalizeUserId(request.UserId),
         UpdatedAtUtc = nowUtc
     };
 
@@ -49,6 +51,7 @@ public static class TodoMapper
             ?? throw new ArgumentException("FirstDueAtUtc je povinné.", nameof(request))).ToUniversalTime();
         var title = request.Title.Trim();
         var description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description.Trim();
+        var userId = NormalizeUserId(request.UserId);
 
         return Enumerable.Range(0, request.RepeatCount + 1)
             .Select(n => new TodoItem
@@ -61,6 +64,7 @@ public static class TodoMapper
                 CreatedAtUtc = nowUtc,
                 CompletedAtUtc = null,
                 DueAtUtc = firstDueAtUtc.AddDays(7 * n),
+                UserId = userId,
                 UpdatedAtUtc = nowUtc
             })
             .ToList();
@@ -75,9 +79,14 @@ public static class TodoMapper
         entity.Title = request.Title.Trim();
         entity.Description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description.Trim();
         entity.Priority = request.Priority;
+        entity.UserId = NormalizeUserId(request.UserId);
         entity.SetCompletionState(request.IsCompleted, nowUtc);
         entity.UpdatedAtUtc = nowUtc;
     }
+
+    /// <summary>Ořízne identifikátor uživatele; prázdná hodnota znamená „bez uživatele“ (<c>null</c>).</summary>
+    private static string? NormalizeUserId(string? userId) =>
+        string.IsNullOrWhiteSpace(userId) ? null : userId.Trim();
 
     /// <summary>Nastaví příznak dokončení a dopočítá čas dokončení.</summary>
     public static void SetCompletionState(this TodoItem entity, bool isCompleted, DateTimeOffset nowUtc)

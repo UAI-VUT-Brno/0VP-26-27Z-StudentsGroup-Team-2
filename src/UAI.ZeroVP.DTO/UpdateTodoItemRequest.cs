@@ -33,4 +33,9 @@ public sealed record UpdateTodoItemRequest
     /// <summary>Příznak dokončení úkolu.</summary>
     /// <example>true</example>
     public bool IsCompleted { get; init; }
+
+    /// <summary>Volitelný identifikátor uživatele, kterému úkol patří, maximálně 200 znaků.</summary>
+    /// <example>jan.novak</example>
+    [StringLength(200, ErrorMessage = "Identifikátor uživatele smí mít nejvýše 200 znaků.")]
+    public string? UserId { get; init; }
 }

@@ -1,15 +1,27 @@
 @UAI.ZeroVP.API_HostAddress = http://localhost:5258
+@UAI.ZeroVP.API_SecondHostAddress = http://localhost:5259
 
 ### Popis API ve formátu OpenAPI (Swagger UI ho čte z této adresy)
 GET {{UAI.ZeroVP.API_HostAddress}}/openapi/v1.json
 Accept: application/json
 
-### Informace o běžící instanci (v Dockeru ukáže hostname kontejneru)
+### Informace o běžící instanci 1 (port 5258 – v Dockeru ukáže hostname kontejneru a InstanceId)
 GET {{UAI.ZeroVP.API_HostAddress}}/api/info
 Accept: application/json
 
-### Kontrola zdraví – tento endpoint volá i HEALTHCHECK v Dockerfile
+### Informace o běžící instanci 2 (port 5259 – odlišení druhé běžící instance)
+GET {{UAI.ZeroVP.API_SecondHostAddress}}/api/info
+Accept: application/json
+
+### Kontrola zdraví – tento endpoint volá i HEALTHCHECK v Dockerfile (instance 1)
 GET {{UAI.ZeroVP.API_HostAddress}}/health
+
+### Kontrola zdraví druhé instance (port 5259)
+GET {{UAI.ZeroVP.API_SecondHostAddress}}/health
+
+### Všechny úkoly přes druhou instanci (port 5259 – ověření sdíleného úložiště)
+GET {{UAI.ZeroVP.API_SecondHostAddress}}/api/todos
+Accept: application/json
 
 ### Všechny úkoly
 GET {{UAI.ZeroVP.API_HostAddress}}/api/todos

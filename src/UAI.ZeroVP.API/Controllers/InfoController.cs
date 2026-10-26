@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Reflection;
 using Microsoft.AspNetCore.Mvc;
 using UAI.ZeroVP.Data.Abstractions;
@@ -18,13 +18,19 @@ public sealed class InfoController : ControllerBase
     private readonly ITodoRepository _repository;
     private readonly IHostEnvironment _environment;
     private readonly TimeProvider _timeProvider;
+    private readonly IConfiguration? _configuration;
 
     /// <summary>Vytvoří kontroler se závislostmi z DI kontejneru.</summary>
-    public InfoController(ITodoRepository repository, IHostEnvironment environment, TimeProvider timeProvider)
+    public InfoController(
+        ITodoRepository repository,
+        IHostEnvironment environment,
+        TimeProvider timeProvider,
+        IConfiguration? configuration = null)
     {
         _repository = repository;
         _environment = environment;
         _timeProvider = timeProvider;
+        _configuration = configuration;
     }
 
     /// <summary>Vrátí informace o běžící instanci API.</summary>
@@ -42,9 +48,19 @@ public sealed class InfoController : ControllerBase
         // podržel nativní handle procesu až do příštího sběru odpadků.
         using var process = Process.GetCurrentProcess();
 
+        var configuredInstanceId = _configuration?["InstanceId"]
+            ?? Environment.GetEnvironmentVariable("InstanceId")
+            ?? Environment.GetEnvironmentVariable("INSTANCE_ID");
+
+        var instanceId = !string.IsNullOrWhiteSpace(configuredInstanceId)
+            ? configuredInstanceId.Trim()
+            : $"{Environment.MachineName}:{process.Id}";
+
         return Ok(new InstanceInfoDto
         {
+            InstanceId = instanceId,
             MachineName = Environment.MachineName,
+            ProcessId = process.Id,
             Environment = _environment.EnvironmentName,
             Version = version,
             UtcNow = _timeProvider.GetUtcNow(),

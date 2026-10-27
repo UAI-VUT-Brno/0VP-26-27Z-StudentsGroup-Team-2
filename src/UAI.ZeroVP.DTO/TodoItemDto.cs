@@ -38,4 +38,8 @@ public sealed record TodoItemDto
     /// <summary>Termín splnění (UTC), nebo <c>null</c> pokud úkol termín nemá.</summary>
     /// <example>2026-10-19T09:00:00Z</example>
     public DateTimeOffset? DueAtUtc { get; init; }
+
+    /// <summary>Identifikátor uživatele, kterému úkol patří, nebo <c>null</c>.</summary>
+    /// <example>jan.novak</example>
+    public string? UserId { get; init; }
 }

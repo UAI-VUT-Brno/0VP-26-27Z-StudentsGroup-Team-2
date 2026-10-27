@@ -37,4 +37,9 @@ public sealed record RepeatTodoItemRequest
     /// <example>3</example>
     [Range(1, 52, ErrorMessage = "Počet opakování musí být 1 až 52.")]
     public int RepeatCount { get; init; }
+
+    /// <summary>Volitelný identifikátor uživatele, kterému úkol patří, maximálně 200 znaků.</summary>
+    /// <example>jan.novak</example>
+    [StringLength(200, ErrorMessage = "Identifikátor uživatele smí mít nejvýše 200 znaků.")]
+    public string? UserId { get; init; }
 }

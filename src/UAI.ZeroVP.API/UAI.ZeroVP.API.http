@@ -19,6 +19,10 @@ Accept: application/json
 GET {{UAI.ZeroVP.API_HostAddress}}/api/todos?isCompleted=false
 Accept: application/json
 
+### Moje úkoly – jen úkoly zadaného uživatele (lze kombinovat s isCompleted)
+GET {{UAI.ZeroVP.API_HostAddress}}/api/todos?userId=jan.novak&isCompleted=false
+Accept: application/json
+
 ### Nový úkol
 POST {{UAI.ZeroVP.API_HostAddress}}/api/todos
 Content-Type: application/json

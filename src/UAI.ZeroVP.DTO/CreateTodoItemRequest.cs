@@ -30,4 +30,9 @@ public sealed record CreateTodoItemRequest
     /// <example>Normal</example>
     [EnumDataType(typeof(TodoPriority), ErrorMessage = "Neplatná hodnota priority.")]
     public TodoPriority Priority { get; init; } = TodoPriority.Normal;
+
+    /// <summary>Volitelný identifikátor uživatele, kterému úkol patří, maximálně 200 znaků.</summary>
+    /// <example>jan.novak</example>
+    [StringLength(200, ErrorMessage = "Identifikátor uživatele smí mít nejvýše 200 znaků.")]
+    public string? UserId { get; init; }
 }

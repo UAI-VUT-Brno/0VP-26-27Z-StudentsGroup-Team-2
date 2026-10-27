@@ -1,4 +1,9 @@
 ﻿using System.Collections.Concurrent;
+using System.Text.Encodings.Web;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using UAI.ZeroVP.Data.Abstractions;
 using UAI.ZeroVP.Data.Entities;
 using UAI.ZeroVP.DTO;
@@ -13,28 +18,99 @@ namespace UAI.ZeroVP.Data.InMemory;
 /// a každá replika kontejneru má vlastní, na ostatních nezávislou sadu dat.
 /// </para>
 /// <para>
+/// With <see cref="InMemoryTodoOptions.StorageFilePath"/> set, the tasks survive a restart:
+/// they are loaded from the JSON file when the repository is created and saved back
+/// by <see cref="TodoStorageHostedService"/> when the application stops.
+/// </para>
+/// <para>
 /// <see cref="ConcurrentDictionary{TKey,TValue}"/> zajišťuje bezpečný souběžný přístup –
 /// webový server obsluhuje požadavky ve více vláknech současně.
 /// </para>
 /// </summary>
 public sealed class InMemoryTodoRepository : ITodoRepository
 {
+    // Same conventions as the API (camelCase, enums as strings), so the file is readable by hand.
+    // Relaxed escaping keeps Czech diacritics as they are; the file is never embedded in HTML.
+    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
+    {
+        WriteIndented = true,
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+        Converters = { new JsonStringEnumConverter() }
+    };
+
     private readonly ConcurrentDictionary<Guid, TodoItem> _items = new();
     private readonly TimeProvider _timeProvider;
+    private readonly ILogger<InMemoryTodoRepository> _logger;
+    private readonly string? _storageFilePath;
 
     /// <summary>
     /// Vytvoří úložiště a volitelně ho naplní ukázkovými daty.
+    /// If <see cref="InMemoryTodoOptions.StorageFilePath"/> points to a valid JSON file,
+    /// the tasks are loaded from it instead and no sample data is added.
     /// </summary>
     /// <param name="options">Nastavení úložiště.</param>
     /// <param name="timeProvider">Zdroj času – umožňuje čas podvrhnout v testech.</param>
-    public InMemoryTodoRepository(InMemoryTodoOptions? options = null, TimeProvider? timeProvider = null)
+    /// <param name="logger">Logger for loading and saving the JSON file.</param>
+    public InMemoryTodoRepository(
+        InMemoryTodoOptions? options = null,
+        TimeProvider? timeProvider = null,
+        ILogger<InMemoryTodoRepository>? logger = null)
     {
         _timeProvider = timeProvider ?? TimeProvider.System;
+        _logger = logger ?? NullLogger<InMemoryTodoRepository>.Instance;
+
+        if (!string.IsNullOrWhiteSpace(options?.StorageFilePath))
+        {
+            _storageFilePath = Path.GetFullPath(options.StorageFilePath);
+
+            if (TryLoadFromFile(_storageFilePath))
+            {
+                return;
+            }
+        }
 
         if (options?.SeedSampleData ?? true)
         {
             Seed();
         }
+    }
+
+    /// <summary>
+    /// Saves all tasks to <see cref="InMemoryTodoOptions.StorageFilePath"/>, creating the directory if needed.
+    /// Does nothing when no storage file is configured.
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    public async Task SaveToFileAsync(CancellationToken cancellationToken = default)
+    {
+        if (_storageFilePath is null)
+        {
+            return;
+        }
+
+        var items = _items.Values
+            .OrderBy(item => item.CreatedAtUtc)
+            .ThenBy(item => item.Id)
+            .Select(item => item.Clone())
+            .ToList();
+
+        var directory = Path.GetDirectoryName(_storageFilePath);
+        if (!string.IsNullOrEmpty(directory))
+        {
+            Directory.CreateDirectory(directory);
+        }
+
+        // Write to a temporary file first and then replace the target, so an interrupted
+        // write never leaves a half-written (corrupted) todos.json behind. The temporary name is
+        // unique, so instances sharing one file (docker compose down stops them together) do not collide.
+        var tempFilePath = $"{_storageFilePath}.{Guid.NewGuid():N}.tmp";
+        await using (var stream = File.Create(tempFilePath))
+        {
+            await JsonSerializer.SerializeAsync(stream, items, JsonOptions, cancellationToken);
+        }
+
+        File.Move(tempFilePath, _storageFilePath, overwrite: true);
+
+        _logger.LogInformation("Saved {Count} tasks to {StorageFilePath}.", items.Count, _storageFilePath);
     }
 
     /// <inheritdoc />
@@ -157,6 +233,45 @@ public sealed class InMemoryTodoRepository : ITodoRepository
         cancellationToken.ThrowIfCancellationRequested();
 
         return Task.FromResult(_items.Count);
+    }
+
+    /// <summary>
+    /// Loads the tasks from the JSON file. Returns <c>false</c> when the file does not exist
+    /// or is corrupted – the caller then starts from scratch.
+    /// </summary>
+    private bool TryLoadFromFile(string path)
+    {
+        if (!File.Exists(path))
+        {
+            _logger.LogInformation("Storage file {StorageFilePath} does not exist, starting from scratch.", path);
+            return false;
+        }
+
+        List<TodoItem?>? items;
+        try
+        {
+            using var stream = File.OpenRead(path);
+            items = JsonSerializer.Deserialize<List<TodoItem?>>(stream, JsonOptions);
+        }
+        catch (JsonException ex)
+        {
+            _logger.LogError(ex, "Storage file {StorageFilePath} is corrupted, starting from scratch.", path);
+            return false;
+        }
+
+        if (items is null || items.Any(item => item is null))
+        {
+            _logger.LogError("Storage file {StorageFilePath} does not contain a list of tasks, starting from scratch.", path);
+            return false;
+        }
+
+        foreach (var item in items)
+        {
+            _items[item!.Id] = item;
+        }
+
+        _logger.LogInformation("Loaded {Count} tasks from {StorageFilePath}.", _items.Count, path);
+        return true;
     }
 
     /// <summary>Vloží ukázkové úkoly, aby API hned po startu nevracelo prázdný seznam.</summary>

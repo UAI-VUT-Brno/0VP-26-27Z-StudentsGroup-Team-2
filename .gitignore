@@ -15,5 +15,9 @@ artifacts/
 ## Uživatelské nastavení aplikace
 appsettings.*.local.json
 
+## Local JSON task storage (Todo:StorageFilePath)
+**/data/todos.json
+**/data/todos.json.*.tmp
+
 ## Ostatní
 *.log

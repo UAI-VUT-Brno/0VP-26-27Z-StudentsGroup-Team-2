@@ -11,4 +11,11 @@ public sealed class InMemoryTodoOptions
 
     /// <summary>Naplnit úložiště ukázkovými úkoly při startu aplikace.</summary>
     public bool SeedSampleData { get; set; } = true;
+
+    /// <summary>
+    /// Path to the JSON file the tasks are loaded from on startup and saved to on shutdown
+    /// (e.g. <c>Todo__StorageFilePath=/app/data/todos.json</c>). A relative path is resolved
+    /// against the current working directory. <c>null</c> keeps the repository purely in memory.
+    /// </summary>
+    public string? StorageFilePath { get; set; }
 }

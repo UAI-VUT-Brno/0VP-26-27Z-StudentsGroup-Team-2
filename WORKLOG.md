@@ -6,7 +6,7 @@ Tento dokument slouží k evidenci aktivity týmu, sledování procesu vývoje (
 
 | Člen týmu (GitHub handle) | Role v týmu | Přidělená oblast / Issue |
 | ----- | ----- | ----- |
-| **@Castulik** | Team Leader | Koordinace týmu, správa `main`, Code Reviews (PR #32, #33, #34), Issue #25 (0VP-T2-08): DevSecOps security scanning v CI, `README.md`, `WORKLOG.md` |
+| **@Castulik** | Team Leader | Koordinace týmu, správa `main`, Code Reviews (PR #32, #33, #34), Issue #25 (0VP-T2-08): DevSecOps security scanning v CI, `README.md`, `WORKLOG.md` (Reviewer: @luxat26) |
 | **@pmikes1** | Vývojář (Dev 1) | Issue #26 (0VP-T2-09): JSON perzistence úložiště & Issue #30 (0VP-T2-13 část A): perzistenční unit a integrační testy (PR #32) |
 | **@stepanch284** | Vývojář (Dev 2) | Issue #28 (0VP-T2-11): Identifikace uživatele (`UserId`) & Issue #29 (0VP-T2-12): Filtr „Moje úkoly“ (`?userId=`) & Issue #30 (0VP-T2-13 část B): testy uživatelských úkolů (PR #34) |
 | **@luxat26** | Vývojář (Dev 3) | Issue #27 (0VP-T2-10): Běh více instancí na localhostu (`launchSettings.json`, `/api/info`) & Issue #31 (0VP-T2-14): Vícefázový `Dockerfile`, `.dockerignore`, `compose.yaml` (PR #33) |
@@ -16,19 +16,19 @@ Tento dokument slouží k evidenci aktivity týmu, sledování procesu vývoje (
 | Datum | Člen týmu | Aktivita / Typ zásahu | Větev / PR | Commit / Hash | Reviewer | Výsledek / Stav |
 | ----- | ----- | ----- | ----- | ----- | ----- | ----- |
 | *2026-10-12* | @Castulik | Založení struktury issues, zadání a inicializace worklogu | `main` | `init` | – | Dokončeno |
-| *2026-10-12* | @pmikes1 | Tvorba `ResponseTimeMiddleware.cs`, hlavička `X-Response-Time-Ms`, varování nad 500 ms | `feature/api-profiling` | PR | @Castulik | V revizi (doplnění unit testů) |
-| *2026-10-12* | @stepanch284 | Příprava zátěžových testů v k6 (`tests/load-tests/`), dokumentace a spouštěcí návod | `feature/load-testing` | PR | @Castulik | Schváleno / Merged |
-| *2026-10-12* | @luxat26 | Doplnění `[ProducesResponseType]`, RFC 9457 ProblemDetails schémat a XML ukázek | `feature/openapi-docs` | PR | @Castulik | Schváleno / Merged |
+| *2026-10-12* | @pmikes1 | Tvorba `ResponseTimeMiddleware.cs`, hlavička `X-Response-Time-Ms`, varování nad 500 ms | `feature/api-profiling` | PR #12 | @Castulik | Schváleno / Merged |
+| *2026-10-12* | @stepanch284 | Příprava zátěžových testů v k6 (`tests/load-tests/`), dokumentace a spouštěcí návod | `feature/load-testing` | PR #13 | @Castulik | Schváleno / Merged |
+| *2026-10-12* | @luxat26 | Doplnění `[ProducesResponseType]`, RFC 9457 ProblemDetails schémat a XML ukázek | `feature/openapi-docs` | PR #14 | @Castulik | Schváleno / Merged |
 | *2026-10-21* | @pmikes1 | Issue #16: Nastavení CI pipeline v GitHub Actions (`.github/workflows/ci.yml`) | `feature/ci-workflow` | PR #19 | @Castulik | Schváleno / Merged |
 | *2026-10-21* | @stepanch284 | Issue #16: CI status badge a nová sekce o CI v `README.md` | `feature/ci-docs` | PR #22 | @Castulik | Schváleno / Merged |
 | *2026-10-21* | @pmikes1 | Issue #17: Datový model (`DueAtUtc`), `ITodoRepository.AddRangeAsync` a unit testy | `feature/repeat-data-layer` | PR #20 | @Castulik | Schváleno / Merged |
 | *2026-10-21* | @stepanch284 | Issue #17: `RepeatTodoItemRequest`, `TodoItemDto.DueAtUtc`, `TodoMapper.ToEntities` a unit testy | `feature/repeat-dto-mapping` | PR #21 | @Castulik | Schváleno / Merged |
 | *2026-10-21* | @luxat26 | Issue #17: Endpoint `POST /api/todos/repeat` v `TodosController.cs` a testy s Moq | `feature/repeat-endpoint` | PR #23 | @Castulik | Schváleno / Merged |
 | *2026-10-21* | @Castulik | Issue #17: Doplnění dokumentace endpointu do `README.md` a testovacích dotazů do `.http` | `feature/repeat-docs` | PR #24 | @pmikes1 | Schváleno / Merged (`9484e7e`) |
-| *2026-10-27* | @stepanch284 | Issue #28, #29, #30 (část B): `UserId` v entitách a DTO, mapování v `TodoMapper`, filtr `?userId=` v `TodosController.GetAll`, 25 unit testů | `feature/user-tasks-filtering` | PR #34 | `0ad64e0` | @Castulik | Schváleno / Merged (`3e9de15`) |
-| *2026-10-27* | @pmikes1 | Issue #26, #30 (část A): JSON perzistence úkolů (`Todo:StorageFilePath`), atomický zápis, graceful shutdown v `TodoStorageHostedService`, ošetření chyb, 12 testů | `feature/json-persistence` | PR #32 | `7322e11` | @Castulik | Schváleno / Merged (`ba4caf4`) |
-| *2026-10-29* | @luxat26 | Issue #27, #31: Běh více instancí na localhostu (`launchSettings.json`, `/api/info`), vícefázový `Dockerfile`, `.dockerignore`, `compose.yaml` (2 instance, sdílený volume) | `feature/multiinstance-docker` | PR #33 | `6b2d0bb` | @Castulik | Schváleno / Merged (`27d316c`) |
-| *2026-10-29* | @Castulik | Issue #25: DevSecOps kontrola zranitelností NuGet balíčků v CI (`ci.yml`), dokumentace nových funkcí v `README.md`, celková evidence v `WORKLOG.md` | `feature/security-scanning` | PR | @pmikes1 | V revizi (připraveno k merge) |
+| *2026-10-27* | @stepanch284 | Issue #28, #29, #30 (část B): `UserId` v entitách a DTO, mapování v `TodoMapper`, filtr `?userId=` v `TodosController.GetAll`, 25 unit testů | `feature/user-tasks-filtering` | PR #34 | @Castulik | Schváleno / Merged (`3e9de15`) |
+| *2026-10-27* | @pmikes1 | Issue #26, #30 (část A): JSON perzistence úkolů (`Todo:StorageFilePath`), atomický zápis, graceful shutdown v `TodoStorageHostedService`, ošetření chyb, 12 testů | `feature/json-persistence` | PR #32 | @Castulik | Schváleno / Merged (`ba4caf4`) |
+| *2026-10-29* | @luxat26 | Issue #27, #31: Běh více instancí na localhostu (`launchSettings.json`, `/api/info`), vícefázový `Dockerfile`, `.dockerignore`, `compose.yaml` (2 instance, sdílený volume) | `feature/multiinstance-docker` | PR #33 | @Castulik | Schváleno / Merged (`27d316c`) |
+| *2026-10-29* | @Castulik | Issue #25: DevSecOps kontrola zranitelností NuGet balíčků v CI (`ci.yml`), dokumentace nových funkcí v `README.md`, celková evidence v `WORKLOG.md` | `feature/security-scanning` | PR | @luxat26 | V revizi (připraveno k merge) |
 
 ## 3. Poznámky k průběhu a řešení problémů (Retrospektiva)
 
@@ -52,7 +52,7 @@ Tento dokument slouží k evidenci aktivity týmu, sledování procesu vývoje (
   * **@Castulik:** Zdokumentoval nový endpoint v `README.md`, přidal ukázkové curl příkazy a do `UAI.ZeroVP.API.http` doplnil platný i validačně chybný HTTP požadavek.
 
 * **Issue 25 (0VP-T2-08: DevSecOps Security Scanning & Dokumentace):**
-  * **@Castulik:** Do CI workflow (`.github/workflows/ci.yml`) doplněn krok DevSecOps bezpečnostního skenování (`dotnet list UAI.ZeroVP.sln package --vulnerable --include-transitive`), který kontroluje přímé i tranzitivní závislosti proti známým zranitelnostem a při nálezu shodí pipeline. V `README.md` byl podrobně zdokumentován návod na lokální spuštění bezpečnostního auditu a veškeré nově zavedené funkce řešení (JSON perzistence, identifikace uživatele a filtr `?userId=`, multi-instance spuštění na localhostu, multi-stage Dockerfile a multi-instance Docker Compose). Vedení a aktualizace týmového přehledu ve `WORKLOG.md`.
+  * **@Castulik:** Do CI workflow (`.github/workflows/ci.yml`) doplněn krok DevSecOps bezpečnostního skenování (`dotnet list UAI.ZeroVP.sln package --vulnerable --include-transitive`), který kontroluje přímé i tranzitivní závislosti proti známým zranitelnostem a při nálezu shodí pipeline. V `README.md` byl podrobně zdokumentován návod na lokální spuštění bezpečnostního auditu a veškeré nově zavedené funkce řešení (JSON perzistence, identifikace uživatele a filtr `?userId=`, multi-instance spuštění na localhostu, multi-stage Dockerfile a multi-instance Docker Compose). Vedení a aktualizace týmového přehledu ve `WORKLOG.md`. Review provádí @luxat26.
 
 * **Issue 26 (0VP-T2-09: Perzistence úkolů v JSON souboru):**
   * **@pmikes1:** Implementována perzistence úkolů přežívající restarty aplikace. Cesta k souboru se konfiguruje přes `Todo:StorageFilePath` (`appsettings.json`, výchozí `data/todos.json`, přepisovatelné proměnnou prostředí `Todo__StorageFilePath`). Ukládání probíhá při korektním vypnutí serveru (`IHostedLifecycleService.StoppedAsync`) zápisem do unikátního dočasného souboru (`.tmp`) a následným atomickým nahrazením cílového souboru (`File.Move(..., overwrite: true)`), což zamezuje poškození souboru při přerušení. Při startu se data načtou ze souboru; absence souboru zahajuje čistý stav a poškozený soubor je zalogován přes `ILogger` bez pádu aplikace.

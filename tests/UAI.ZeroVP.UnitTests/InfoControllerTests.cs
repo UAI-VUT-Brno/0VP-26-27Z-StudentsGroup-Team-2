@@ -1,5 +1,6 @@
-using FluentAssertions;
+﻿using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Moq;
 using System.Diagnostics;
@@ -64,7 +65,9 @@ public class InfoControllerTests
 
         // 3. Rozpad vlastností DTO a jejich kontrola
         dto.Should().NotBeNull();
+        dto.InstanceId.Should().NotBeNullOrWhiteSpace();
         dto.MachineName.Should().Be(expectedMachineName);
+        dto.ProcessId.Should().BeGreaterThan(0);
         dto.Environment.Should().Be(expectedEnvironment);
         dto.TodoCount.Should().Be(expectedTodoCount);
         dto.UtcNow.Should().Be(mockUtcNow);
@@ -75,6 +78,36 @@ public class InfoControllerTests
 
         // Uptime musí být validní (kladný časový úsek)
         dto.Uptime.Should().BeGreaterThan(TimeSpan.Zero);
+    }
+
+    [Fact]
+    public async Task Get_WhenInstanceIdConfigured_ReturnsConfiguredInstanceId()
+    {
+        // Arrange
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["InstanceId"] = "instance-2"
+            })
+            .Build();
+
+        var sut = new InfoController(
+            _repositoryMock.Object,
+            _environmentMock.Object,
+            _timeProviderMock.Object,
+            configuration);
+
+        _environmentMock.Setup(e => e.EnvironmentName).Returns("Development");
+        _timeProviderMock.Setup(t => t.GetUtcNow()).Returns(DateTimeOffset.UtcNow.AddHours(1));
+        _repositoryMock.Setup(r => r.CountAsync(It.IsAny<CancellationToken>())).ReturnsAsync(4);
+
+        // Act
+        var actionResult = await sut.Get(CancellationToken.None);
+
+        // Assert
+        var okResult = actionResult.Result.Should().BeOfType<OkObjectResult>().Subject;
+        var dto = okResult.Value.Should().BeOfType<InstanceInfoDto>().Subject;
+        dto.InstanceId.Should().Be("instance-2");
     }
 
     [Fact]
@@ -115,4 +148,4 @@ public class InfoControllerTests
         await act.Should().ThrowAsync<TimeoutException>()
                  .WithMessage("Database is dead");
     }
-}   
+}

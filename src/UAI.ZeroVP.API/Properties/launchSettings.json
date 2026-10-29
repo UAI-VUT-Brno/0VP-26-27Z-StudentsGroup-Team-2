@@ -1,4 +1,4 @@
-﻿{
+{
   "$schema": "https://json.schemastore.org/launchsettings.json",
   "profiles": {
     "http": {
@@ -7,7 +7,42 @@
       "launchBrowser": false,
       "applicationUrl": "http://localhost:5258",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "InstanceId": "instance-1",
+        "Todo__StorageFilePath": "data/todos.json"
+      }
+    },
+    "http-2": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": false,
+      "applicationUrl": "http://localhost:5259",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "InstanceId": "instance-2",
+        "Todo__StorageFilePath": "data/todos.json"
+      }
+    },
+    "instance-1": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": false,
+      "applicationUrl": "http://localhost:5258",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "InstanceId": "instance-1",
+        "Todo__StorageFilePath": "data/todos.json"
+      }
+    },
+    "instance-2": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": false,
+      "applicationUrl": "http://localhost:5259",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "InstanceId": "instance-2",
+        "Todo__StorageFilePath": "data/todos.json"
       }
     },
     "https": {
@@ -16,7 +51,9 @@
       "launchBrowser": false,
       "applicationUrl": "https://localhost:7051;http://localhost:5258",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "InstanceId": "instance-1",
+        "Todo__StorageFilePath": "data/todos.json"
       }
     }
   }

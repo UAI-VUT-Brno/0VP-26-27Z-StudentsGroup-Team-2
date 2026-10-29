@@ -1,4 +1,4 @@
-namespace UAI.ZeroVP.DTO;
+﻿namespace UAI.ZeroVP.DTO;
 
 /// <summary>
 /// Informace o běžící instanci API.
@@ -7,9 +7,17 @@ namespace UAI.ZeroVP.DTO;
 /// </summary>
 public sealed record InstanceInfoDto
 {
+    /// <summary>Jednoznačný identifikátor instance (z konfigurace InstanceId, jinak kombinace stroje a PID).</summary>
+    /// <example>instance-1</example>
+    public required string InstanceId { get; init; }
+
     /// <summary>Jméno stroje – v kontejneru odpovídá jeho hostname (zkrácené ID kontejneru).</summary>
     /// <example>zerovp-app-6d8b9</example>
     public required string MachineName { get; init; }
+
+    /// <summary>Identifikátor běžícího procesu (PID) – odliší více lokálních instancí na stejném stroji.</summary>
+    /// <example>12345</example>
+    public int ProcessId { get; init; }
 
     /// <summary>Název prostředí ASP.NET Core (Development / Production / ...).</summary>
     /// <example>Development</example>

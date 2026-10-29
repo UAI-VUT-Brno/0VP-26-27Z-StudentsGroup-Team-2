@@ -1,0 +1,44 @@
+# ============================================================================
+#  UAI.ZeroVP – Docker Compose pro souběžný běh více instancí API
+#
+#  Spuštění:  docker compose up --build
+#
+#  Dvě instance API (api-1 na portu 5258, api-2 na portu 5259) sdílejí
+#  společný Docker volume (todo-data:/app/data) s JSON úložištěm úkolů.
+# ============================================================================
+
+name: zerovp
+
+x-api-base: &api-base
+  build:
+    context: .
+    dockerfile: Dockerfile
+  image: zerovp:latest
+  volumes:
+    - todo-data:/app/data
+  restart: unless-stopped
+
+services:
+
+  api-1:
+    <<: *api-base
+    ports:
+      - "5258:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      InstanceId: api-1
+      Todo__StorageFilePath: /app/data/todos.json
+      Swagger__Enabled: "true"
+
+  api-2:
+    <<: *api-base
+    ports:
+      - "5259:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      InstanceId: api-2
+      Todo__StorageFilePath: /app/data/todos.json
+      Swagger__Enabled: "true"
+
+volumes:
+  todo-data:

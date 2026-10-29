@@ -35,6 +35,15 @@ jobs:
       - name: Restore
         run: dotnet restore UAI.ZeroVP.sln
 
+      - name: Security scan (vulnerable packages)
+        run: |
+          output=$(dotnet list UAI.ZeroVP.sln package --vulnerable --include-transitive)
+          echo "$output"
+          if echo "$output" | grep -iqE "(has the following vulnerable packages|má při aktuálních zdrojích následující zranitelné balíčky)"; then
+            echo "::error::Vulnerable NuGet packages detected in solution dependencies!"
+            exit 1
+          fi
+
       - name: Build
         run: dotnet build UAI.ZeroVP.sln --no-restore -c Release
 

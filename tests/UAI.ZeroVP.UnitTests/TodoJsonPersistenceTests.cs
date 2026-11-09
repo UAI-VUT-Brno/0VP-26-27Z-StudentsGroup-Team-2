@@ -21,6 +21,9 @@ public sealed class TodoJsonPersistenceTests : IDisposable
 {
     private static readonly DateTimeOffset Now = new(2026, 10, 25, 8, 0, 0, TimeSpan.Zero);
 
+    /// <summary>Number of sample tasks inserted by <c>InMemoryTodoRepository.Seed</c>.</summary>
+    private const int SeededItemCount = 18;
+
     private readonly string _directory = Path.Combine(Path.GetTempPath(), "UAI.ZeroVP.Tests", Guid.NewGuid().ToString("N"));
     private readonly Mock<ILogger<InMemoryTodoRepository>> _loggerMock = new();
 
@@ -177,7 +180,7 @@ public sealed class TodoJsonPersistenceTests : IDisposable
             Task.Run(() => first.SaveToFileAsync()),
             Task.Run(() => second.SaveToFileAsync()));
 
-        Assert.Equal(4, await CreateRepository().CountAsync());
+        Assert.Equal(SeededItemCount, await CreateRepository().CountAsync());
         Assert.Empty(Directory.GetFiles(Path.GetDirectoryName(StorageFilePath)!, "*.tmp"));
     }
 
@@ -211,7 +214,7 @@ public sealed class TodoJsonPersistenceTests : IDisposable
     // --- Missing file ---------------------------------------------------------
 
     [Theory]
-    [InlineData(true, 4)]
+    [InlineData(true, SeededItemCount)]
     [InlineData(false, 0)]
     public async Task Constructor_MissingFile_StartsFromScratch(bool seedSampleData, int expectedCount)
     {
@@ -248,7 +251,7 @@ public sealed class TodoJsonPersistenceTests : IDisposable
 
         var repository = CreateRepository(seedSampleData: true);
 
-        Assert.Equal(4, await repository.CountAsync());
+        Assert.Equal(SeededItemCount, await repository.CountAsync());
     }
 
     [Fact]
@@ -259,7 +262,7 @@ public sealed class TodoJsonPersistenceTests : IDisposable
 
         await repository.SaveToFileAsync();
 
-        Assert.Equal(4, await CreateRepository().CountAsync());
+        Assert.Equal(SeededItemCount, await CreateRepository().CountAsync());
     }
 
     // --- Application lifetime (integration) -----------------------------------
@@ -294,7 +297,7 @@ public sealed class TodoJsonPersistenceTests : IDisposable
             await host.StartAsync();
             var repository = host.Services.GetRequiredService<ITodoRepository>();
 
-            Assert.Equal(5, await repository.CountAsync());
+            Assert.Equal(SeededItemCount + 1, await repository.CountAsync());
             Assert.Equal(task.DueAtUtc, (await repository.GetByIdAsync(task.Id))!.DueAtUtc);
 
             await host.StopAsync();

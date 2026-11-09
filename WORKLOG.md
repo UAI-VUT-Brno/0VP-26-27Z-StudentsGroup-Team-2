@@ -6,10 +6,10 @@ Tento dokument slouží k evidenci aktivity týmu, sledování procesu vývoje (
 
 | Člen týmu (GitHub handle) | Role v týmu | Přidělená oblast / Issue |
 | ----- | ----- | ----- |
-| **@Castulik** | Team Leader | Koordinace týmu, správa `main`, Code Reviews (PR #32, #33, #34), Issue #25 (0VP-T2-08): DevSecOps security scanning v CI, `README.md`, `WORKLOG.md` (Reviewer: @luxat26) |
-| **@pmikes1** | Vývojář (Dev 1) | Issue #26 (0VP-T2-09): JSON perzistence úložiště & Issue #30 (0VP-T2-13 část A): perzistenční unit a integrační testy (PR #32) |
-| **@stepanch284** | Vývojář (Dev 2) | Issue #28 (0VP-T2-11): Identifikace uživatele (`UserId`) & Issue #29 (0VP-T2-12): Filtr „Moje úkoly“ (`?userId=`) & Issue #30 (0VP-T2-13 část B): testy uživatelských úkolů (PR #34) |
-| **@luxat26** | Vývojář (Dev 3) | Issue #27 (0VP-T2-10): Běh více instancí na localhostu (`launchSettings.json`, `/api/info`) & Issue #31 (0VP-T2-14): Vícefázový `Dockerfile`, `.dockerignore`, `compose.yaml` (PR #33) |
+| **@Castulik** | Team Leader | Koordinace týmu, správa `main`, Code Reviews (PR #32, #33, #34, #40, #41, #42), Issue #25 (0VP-T2-08): DevSecOps security scanning v CI & Issue #39 (0VP-T2-18): Manuální ověření MCP serveru (Inspector, Copilot/Gemini), `README.md`, `WORKLOG.md` (Reviewer: @luxat26) |
+| **@pmikes1** | Vývojář (Dev 1) | Issue #26 (0VP-T2-09): JSON perzistence úložiště (PR #32) & Issue #36 (0VP-T2-15): Read-only MCP server (`/mcp`) s nástroji `list_todos` a `get_todo` (PR #40) |
+| **@stepanch284** | Vývojář (Dev 2) | Issue #28 & #29 (0VP-T2-11, 0VP-T2-12): `UserId` a filtr úkolů (PR #34) & Issue #37 (0VP-T2-16): Rozšíření vzorových úkolů pro MCP dotazy (PR #41) |
+| **@luxat26** | Vývojář (Dev 3) | Issue #27 & #31: Docker a multi-instance (PR #33) & Issue #38 (0VP-T2-17): Automatizované integrační testy MCP protokolu přes MCP klienta (PR #42) |
 
 ## 2. Záznam aktivit a revizí (Changelog & Reviews)
 
@@ -28,7 +28,11 @@ Tento dokument slouží k evidenci aktivity týmu, sledování procesu vývoje (
 | *2026-10-27* | @stepanch284 | Issue #28, #29, #30 (část B): `UserId` v entitách a DTO, mapování v `TodoMapper`, filtr `?userId=` v `TodosController.GetAll`, 25 unit testů | `feature/user-tasks-filtering` | PR #34 | @Castulik | Schváleno / Merged (`3e9de15`) |
 | *2026-10-27* | @pmikes1 | Issue #26, #30 (část A): JSON perzistence úkolů (`Todo:StorageFilePath`), atomický zápis, graceful shutdown v `TodoStorageHostedService`, ošetření chyb, 12 testů | `feature/json-persistence` | PR #32 | @Castulik | Schváleno / Merged (`ba4caf4`) |
 | *2026-10-29* | @luxat26 | Issue #27, #31: Běh více instancí na localhostu (`launchSettings.json`, `/api/info`), vícefázový `Dockerfile`, `.dockerignore`, `compose.yaml` (2 instance, sdílený volume) | `feature/multiinstance-docker` | PR #33 | @Castulik | Schváleno / Merged (`27d316c`) |
-| *2026-10-29* | @Castulik | Issue #25: DevSecOps kontrola zranitelností NuGet balíčků v CI (`ci.yml`), dokumentace nových funkcí v `README.md`, celková evidence v `WORKLOG.md` | `feature/security-scanning` | PR | @luxat26 | V revizi (připraveno k merge) |
+| *2026-10-29* | @Castulik | Issue #25: DevSecOps kontrola zranitelností NuGet balíčků v CI (`ci.yml`), dokumentace nových funkcí v `README.md`, celková evidence v `WORKLOG.md` | `feature/security-scanning` | PR #35 | @luxat26 | Schváleno / Merged (`6462bd4`) |
+| *2026-11-09* | @pmikes1 | Issue #36 (0VP-T2-15): Read-only MCP server na `/mcp`, balíček `ModelContextProtocol.AspNetCore`, nástroje `list_todos` a `get_todo`, 9 unit testů v `TodoMcpToolsTests.cs` | `feature/mcp-server` | PR #40 | @Castulik | Schváleno / Merged (`f6c2a43`) |
+| *2026-11-09* | @stepanch284 | Issue #37 (0VP-T2-16): Rozšíření vzorových úkolů pro MCP dotazy (18 úkolů s různými `UserId`, stavy a prioritami v `Seed()` i `todos.json`), aktualizace testů v `InMemoryTodoRepositoryTests.cs` | `feature/mcp-sample-data` | PR #41 | @Castulik | Schváleno / Merged (`c187d71`) |
+| *2026-11-09* | @luxat26 | Issue #38 (0VP-T2-17): Automatizované integrační testy MCP protokolu přes `McpClient` na dynamickém Kestrel portu (`McpServerIntegrationTests.cs`, 8 testů, `Microsoft.AspNetCore.Mvc.Testing`) | `feature/mcp-integration-tests` | PR #42 | @Castulik | Schváleno / Merged (`0c895a6`) |
+| *2026-11-09* | @Castulik | Issue #39 (0VP-T2-18): Manuální ověření MCP serveru (Inspector, Copilot/Gemini), bezpečnostní varování a návody v `README.md`, aktualizace evidencí a retrospektivy ve `WORKLOG.md` | `docs/mcp-verification` | PR | @luxat26 | V revizi (připraveno k merge) |
 
 ## 3. Poznámky k průběhu a řešení problémů (Retrospektiva)
 
@@ -71,3 +75,16 @@ Tento dokument slouží k evidenci aktivity týmu, sledování procesu vývoje (
 
 * **Issue 31 (0VP-T2-14: Dockerfile a Docker Compose):**
   * **@luxat26:** Vytvořen produkční vícefázový `Dockerfile` (`sdk:10.0` pro cachovaný restore a Release build, `aspnet:10.0` pro runtime) s neprivilegovaným uživatelem `USER $APP_UID`, oprávněními pro adresář `/app/data` a kontrolou zdraví `HEALTHCHECK` volající `/health`. Připraven soubor `.dockerignore`. V `compose.yaml` nakonfigurován souběžný běh dvou instancí API (`api-1` na portu 5258, `api-2` na portu 5259) se sdíleným pojmenovaným svazkem `todo-data:/app/data` a jednotnou konfigurací `Todo__StorageFilePath=/app/data/todos.json`.
+
+
+* **Issue 36 (0VP-T2-15: Read-only MCP server `/mcp` a nástroje `list_todos`, `get_todo`):**
+  * **@pmikes1:** Přidal do `src/UAI.ZeroVP.API` oficiální balíček `ModelContextProtocol.AspNetCore`. Vytvořil třídu `TodoMcpTools` s atributem `[McpServerToolType]`, která vystavuje nástroje `list_todos` (s volitelnými filtry `isCompleted` a `userId`) a `get_todo` (vyhledání podle `Guid` s vyhozením `McpException` při neexistenci). Nástroje využívají stávající rozhraní `ITodoRepository` a mapují výsledky na `TodoItemDto`. V `Program.cs` zaregistroval MCP server do DI a namapoval endpoint `app.MapMcp("/mcp")`. Doplnil 9 unit testů v `TodoMcpToolsTests.cs`. Review provedl @Castulik (PR #40).
+
+* **Issue 37 (0VP-T2-16: Rozšíření vzorového datasetu pro MCP dotazování):**
+  * **@stepanch284:** V `InMemoryTodoRepository.cs` rozšířil pomocnou metodu `AddSeedItem` o volitelné parametry `userId` a `dueAtUtc`. Metoda `Seed()` byla rozšířena ze 4 položek na 18 reprezentativních úkolů napříč uživateli (`alice`, `bob`, `charlie` i nezařazené), všemi prioritami a stavy dokončení. Stejná data byla aktualizována v `src/UAI.ZeroVP.API/data/todos.json`. V `InMemoryTodoRepositoryTests.cs` byly aktualizovány testy počtu seedu a přidán test ověřující diverzitu seedovaných dat. Review provedl @Castulik (PR #41).
+
+* **Issue 38 (0VP-T2-17: Automatizované integrační testy MCP protokolu přes MCP klienta):**
+  * **@luxat26:** Do `tests/UAI.ZeroVP.UnitTests` přidal balíček `Microsoft.AspNetCore.Mvc.Testing` a vytvořil testovací fixture `McpTestFixture`, která spouští API na dynamickém portu Kestrelu (`http://127.0.0.1:0`) s vypnutou perzistencí na disk a zapnutým seedem v paměti. V `McpServerIntegrationTests.cs` implementoval 8 integračních scénářů ověřujících komunikaci přes protokol MCP pomocí `McpClient`: listování nástrojů (`ListToolsAsync`), volání `list_todos` nefiltrované (18 úkolů), filtrované podle `isCompleted` i `userId`, kombinované filtrování a `get_todo` pro existující i neexistující úkol (s ověřením `IsError = true`). Celkový počet testů v projektu stoupl ze 153 na 172. Review provedl @Castulik (PR #42).
+
+* **Issue 39 (0VP-T2-18: Manuální ověření MCP serveru, bezpečnostní dokumentace a worklog):**
+  * **@Castulik:** Provedl ověření funkčnosti MCP serveru přes MCP Inspector (`npx @modelcontextprotocol/inspector`) a v kontextu AI asistenta (GitHub Copilot / Gemini). Do `README.md` doplnil přehled endpointu `/mcp`, detailní popis nástrojů, návod na lokální manuální testování přes MCP Inspector a konfiguraci pro VS Code (`.vscode/mcp.json`). Doplnil výrazné bezpečnostní upozornění o absenci autentizace a výhradně lokálním určení. Zkoordinoval a zkontroloval PR #40, #41 a #42 a zkompletoval záznamy ve `WORKLOG.md`. Review provádí @luxat26.

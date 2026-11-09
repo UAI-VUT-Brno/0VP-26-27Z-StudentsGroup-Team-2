@@ -121,6 +121,7 @@ V repozitáři je k dispozici vícefázový `Dockerfile` a `compose.yaml` pro sp
 | `GET` | `/health` | Kontrola zdraví – použije ji `HEALTHCHECK` v Dockerfile |
 | `GET` | `/swagger` | Interaktivní dokumentace Swagger UI |
 | `GET` | `/openapi/v1.json` | Popis API ve formátu OpenAPI |
+| `POST, GET` | `/mcp` | Read-only MCP (Model Context Protocol) endpoint pro AI asistenty |
 
 Chybové odpovědi mají jednotný tvar `ProblemDetails` (RFC 9457).
 Připravené požadavky k odzkoušení jsou v souboru `src/UAI.ZeroVP.API/UAI.ZeroVP.API.http`.
@@ -154,6 +155,80 @@ Zadání například `repeatCount: 3` vytvoří celkem **4 samostatné úkoly**:
 Při úspěchu vrátí odpověď `201 Created` se seznamem vytvořených úkolů `TodoItemDto`, kde každý obsahuje vlastní identifikátor `id` a termín `dueAtUtc`. Běžně zakládané úkoly přes `POST /api/todos` zůstávají zpětně kompatibilní a mají `dueAtUtc: null`. Při neplatném vstupu (neplatná pole, chybějící termín, `repeatCount` mimo rozsah 1–52) vrátí API standardní `400 Bad Request` a nevytvoří žádný úkol.
 
 > **Poznámka k rozsahu (Scope note):** Vytvořené výskyty jsou samostatné, navzájem nezávislé běžné úkoly (nejde o trvalé pravidlo opakování). Dokončení nebo smazání jednoho výskytu neovlivňuje ostatní úkoly v sérii. Úkoly jsou perzistovány dle nastavení `Todo:StorageFilePath`.
+
+### MCP Server (`/mcp`) – Model Context Protocol
+
+Aplikace vystavuje read-only server podle otevřeného standardu **Model Context Protocol (MCP)** na adrese `http://localhost:5258/mcp` (využívá oficiální .NET balíček `ModelContextProtocol.AspNetCore` s HTTP/SSE transportem). Server umožňuje AI asistentům (jako je GitHub Copilot, Gemini nebo Claude) přímo nahlížet do úkolů a provádět dotazy přirozeným jazykem.
+
+> [!WARNING]
+> **Bezpečnostní upozornění (Security Notice):**  
+> Endpoint `/mcp` je určen **výhradně pro lokální vývoj a výukové účely**. Server je implementován pouze pro čtení (**read-only**), **neobsahuje žádnou autentizaci ani autorizaci** a přistupuje k lokálním/testovacím datům úložiště. **Není bezpečné tento endpoint vystavovat veřejně do sítě nebo na internet.**
+
+#### Dostupné MCP nástroje (Tools)
+
+Server vystavuje dva nástroje přistupující přímo k existujícímu rozhraní `ITodoRepository`:
+
+1. **`list_todos`**
+   * **Popis:** Vrací seznam úkolů seřazených dle priority a data vytvoření (odpovídá DTO modelům `TodoItemDto`).
+   * **Volitelné parametry:**
+     * `isCompleted` (boolean, volitelný): `true` = pouze dokončené úkoly, `false` = pouze otevřené úkoly; vynecháno = všechny úkoly bez ohledu na stav.
+     * `userId` (string, volitelný): vrátí pouze úkoly zadaného uživatele (např. `"alice"`); vynecháno = úkoly všech uživatelů.
+2. **`get_todo`**
+   * **Popis:** Vrátí detail jednoho konkrétního úkolu podle jeho jednoznačného identifikátoru.
+   * **Parametry:**
+     * `id` (GUID, povinný): Jednoznačný identifikátor úkolu.
+   * **Chování při nenalezení:** Pokud úkol s daným ID neexistuje, server vrátí protokolovou chybu (`McpException`: *Task with ID '...' was not found*), kterou AI klient obdrží s příznakem `isError = true`.
+
+#### Ověření člověkem: MCP Inspector
+
+MCP Inspector je oficiální vývojářský nástroj pro interaktivní ladění a testování MCP serverů.
+
+1. **Spusťte ToDo API:**
+   ```bash
+   dotnet run --project src/UAI.ZeroVP.API
+   ```
+   API naslouchá na `http://localhost:5258`.
+
+2. **V samostatném terminálu spusťte MCP Inspector:**
+   ```bash
+   npx @modelcontextprotocol/inspector
+   ```
+   Po spuštění otevřete v prohlížeči zobrazenou adresu (obvykle `http://localhost:5173`).
+
+3. **Připojení k serveru:**
+   * **Transport Type:** Vyberte `SSE` (případně `Streamable HTTP`).
+   * **URL:** Zadejte `http://localhost:5258/mcp`.
+   * Klikněte na tlačítko **Connect**.
+
+4. **Vyzkoušení nástrojů:**
+   * V záložce **Tools** klikněte na **List Tools** – zobrazí se nástroje `list_todos` a `get_todo` včetně schématu parametrů.
+   * Zvolte `list_todos`, zadejte např. `userId: "alice"` a klikněte na **Run Tool** – obdržíte seznam úkolů dané uživatelky.
+   * Zkopírujte libovolné `id` úkolu, přepněte na `get_todo`, zadejte zkopírované ID a ověřte vrácení detailu položky.
+
+#### Použití v AI asistentovi (GitHub Copilot / Gemini)
+
+Běžící MCP endpoint lze napojit přímo do moderních vývojových prostředí s AI:
+
+* **Konfigurace pro GitHub Copilot ve VS Code:**
+  Vytvořte nebo doplňte soubor `.vscode/mcp.json` v pracovním prostoru:
+  ```json
+  {
+    "servers": {
+      "todo-api": {
+        "type": "sse",
+        "url": "http://localhost:5258/mcp"
+      }
+    }
+  }
+  ```
+
+* **Ukázky dotazů přirozeným jazykem v chatu:**
+  * *„Jaké rozdělané úkoly má uživatel alice a jakou mají prioritu?“*  
+    *(AI asistent vyvolá nástroj `list_todos` s parametry `{"userId": "alice", "isCompleted": false}`).*
+  * *„Najdi mi všechny úkoly s vysokou prioritou a ukaž mi jejich termíny.“*
+  * *„Zobraz detail úkolu s ID 7f5556a2-3064-4eb5-9a0d-b52def369d2d.“*  
+    *(AI asistent vyvolá nástroj `get_todo` s parametrem `{"id": "..."}`).*
+
 
 ## Swagger
 
@@ -219,7 +294,7 @@ Na `ubuntu-latest` s .NET `10.0.x` provádí následující kroky:
 1. `dotnet restore` s cachováním NuGet balíčků.
 2. **DevSecOps Security Gate:** Automatizovaná bezpečnostní kontrola zranitelností v balíčcích projektu (`dotnet list ... package --vulnerable --include-transitive`). Pokud je detekována jakákoliv zranitelnost, pipeline okamžitě selže.
 3. `dotnet build` v konfiguraci Release (`--no-restore`).
-4. `dotnet test` v konfiguraci Release (`--no-build`) – spouští všech 153 testů v projektu `tests/UAI.ZeroVP.UnitTests`.
+4. `dotnet test` v konfiguraci Release (`--no-build`) – spouští všech 172 testů v projektu `tests/UAI.ZeroVP.UnitTests`.
 
 Chyba kompilace, bezpečnostní zranitelnost nebo neprošlý test shodí celý běh. Novější push do stejné větve
 zruší starší, ještě běžící běh.

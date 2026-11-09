@@ -1,5 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 using Microsoft.OpenApi;
+using UAI.ZeroVP.API.Mcp;
 using UAI.ZeroVP.API.Middleware;
 using UAI.ZeroVP.Data.DependencyInjection;
 using UAI.ZeroVP.Data.InMemory;
@@ -65,6 +66,12 @@ try
     // Kontrola zdraví aplikace – později ji využije HEALTHCHECK v Dockerfile.
     builder.Services.AddHealthChecks();
 
+    // Read-only MCP server (Model Context Protocol) over the task list – see TodoMcpTools.
+    // No authentication: intended for local/development use only, do not expose publicly.
+    builder.Services.AddMcpServer()
+        .WithHttpTransport()
+        .WithTools<TodoMcpTools>();
+
     // Popis API ve formátu OpenAPI. Dokument generuje vestavěná knihovna .NET 10
     // (Microsoft.AspNetCore.OpenApi) a vystavuje ho na /openapi/v1.json.
     // Swagger UI je pak jen prohlížeč tohoto dokumentu – žádný druhý generátor.
@@ -123,6 +130,7 @@ try
 
     app.MapHealthChecks("/health");
     app.MapControllers();
+    app.MapMcp("/mcp");
 
     // Kořen vede na Swagger, ať má "docker run" hned co ukázat.
     // Když je Swagger vypnutý, přesměruje rovnou na seznam úkolů.
@@ -142,3 +150,6 @@ finally
     Log.ForContext("SourceContext", "Program").Information("Aplikace ukončena");
     Log.CloseAndFlush();
 }
+
+/// <summary>Entry point; public so integration tests can reference <c>Program</c>.</summary>
+public partial class Program;

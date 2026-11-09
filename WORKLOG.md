@@ -32,7 +32,7 @@ Tento dokument slouží k evidenci aktivity týmu, sledování procesu vývoje (
 | *2026-11-09* | @pmikes1 | Issue #36 (0VP-T2-15): Read-only MCP server na `/mcp`, balíček `ModelContextProtocol.AspNetCore`, nástroje `list_todos` a `get_todo`, 9 unit testů v `TodoMcpToolsTests.cs` | `feature/mcp-server` | PR #40 | @Castulik | Schváleno / Merged (`f6c2a43`) |
 | *2026-11-09* | @stepanch284 | Issue #37 (0VP-T2-16): Rozšíření vzorových úkolů pro MCP dotazy (18 úkolů s různými `UserId`, stavy a prioritami v `Seed()` i `todos.json`), aktualizace testů v `InMemoryTodoRepositoryTests.cs` | `feature/mcp-sample-data` | PR #41 | @Castulik | Schváleno / Merged (`c187d71`) |
 | *2026-11-09* | @luxat26 | Issue #38 (0VP-T2-17): Automatizované integrační testy MCP protokolu přes `McpClient` na dynamickém Kestrel portu (`McpServerIntegrationTests.cs`, 8 testů, `Microsoft.AspNetCore.Mvc.Testing`) | `feature/mcp-integration-tests` | PR #42 | @Castulik | Schváleno / Merged (`0c895a6`) |
-| *2026-11-09* | @Castulik | Issue #39 (0VP-T2-18): Manuální ověření MCP serveru (Inspector, Copilot/Gemini), bezpečnostní varování a návody v `README.md`, aktualizace evidencí a retrospektivy ve `WORKLOG.md` | `docs/mcp-verification` | PR | @luxat26 | V revizi (připraveno k merge) |
+| *2026-11-09* | @Castulik | Issue #39 (0VP-T2-18): Manuální ověření MCP serveru (Inspector, Copilot/Gemini), bezpečnostní varování a návody v `README.md`, aktualizace evidencí a retrospektivy ve `WORKLOG.md` | `docs/mcp-verification` | PR #43 | @luxat26 | V revizi (připraveno k merge) |
 
 ## 3. Poznámky k průběhu a řešení problémů (Retrospektiva)
 

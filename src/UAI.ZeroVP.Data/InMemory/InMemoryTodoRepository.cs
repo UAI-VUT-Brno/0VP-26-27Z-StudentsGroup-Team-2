@@ -274,18 +274,51 @@ public sealed class InMemoryTodoRepository : ITodoRepository
         return true;
     }
 
-    /// <summary>Vloží ukázkové úkoly, aby API hned po startu nevracelo prázdný seznam.</summary>
+    /// <summary>
+    /// Vloží ukázkové úkoly, aby API hned po startu nevracelo prázdný seznam.
+    /// The dataset is large enough to try out filtering (e.g. via the MCP tool <c>list_todos</c>):
+    /// several users plus unassigned tasks, open and completed tasks for each of them,
+    /// all priorities, and tasks with and without a due date (including an overdue one).
+    /// </summary>
     private void Seed()
     {
         var now = _timeProvider.GetUtcNow();
 
+        // Unassigned tasks.
         AddSeedItem("Připravit ukázkové API", "Tři projekty: DTO, Data, API.", TodoPriority.High, isCompleted: true, now.AddDays(-2));
         AddSeedItem("Napsat Dockerfile", "Vícefázový build nad SDK a runtime image.", TodoPriority.High, isCompleted: false, now.AddDays(-1));
-        AddSeedItem("Vyzkoušet docker compose", "Spustit API ve dvou replikách.", TodoPriority.Normal, isCompleted: false, now.AddHours(-3));
+        AddSeedItem("Vyzkoušet docker compose", "Spustit API ve dvou replikách.", TodoPriority.Normal, isCompleted: false, now.AddHours(-3), dueAtUtc: now.AddDays(2));
         AddSeedItem("Uklidit nepoužité image", "docker image prune", TodoPriority.Low, isCompleted: false, now.AddMinutes(-30));
+
+        // alice
+        AddSeedItem("Navrhnout MCP nástroje", "list_todos a get_todo, pouze pro čtení.", TodoPriority.High, isCompleted: true, now.AddDays(-5), userId: "alice", dueAtUtc: now.AddDays(-3));
+        AddSeedItem("Otestovat MCP v Inspectoru", "Ověřit filtry isCompleted a userId.", TodoPriority.High, isCompleted: false, now.AddDays(-1), userId: "alice", dueAtUtc: now.AddDays(1));
+        AddSeedItem("Doplnit popisy parametrů", "Popisy, které uvidí jazykový model.", TodoPriority.Normal, isCompleted: false, now.AddHours(-6), userId: "alice");
+        AddSeedItem("Projít logy z CI", "Zkontrolovat varování při buildu.", TodoPriority.Low, isCompleted: true, now.AddDays(-4), userId: "alice");
+        AddSeedItem("Sepsat poznámky k MCP", "Krátký návod pro tým.", TodoPriority.Low, isCompleted: false, now.AddHours(-2), userId: "alice", dueAtUtc: now.AddDays(7));
+
+        // bob
+        AddSeedItem("Nastavit JSON perzistenci", "Ukládání do data/todos.json.", TodoPriority.High, isCompleted: true, now.AddDays(-6), userId: "bob", dueAtUtc: now.AddDays(-4));
+        AddSeedItem("Zkontrolovat zranitelné balíčky", "dotnet list package --vulnerable", TodoPriority.High, isCompleted: false, now.AddHours(-12), userId: "bob", dueAtUtc: now.AddHours(12));
+        AddSeedItem("Ověřit sdílený svazek v compose", "Obě instance musí vidět stejná data.", TodoPriority.Normal, isCompleted: false, now.AddDays(-2), userId: "bob", dueAtUtc: now.AddDays(2));
+        AddSeedItem("Aktualizovat README", "Popsat nové funkce.", TodoPriority.Normal, isCompleted: true, now.AddDays(-3), userId: "bob");
+        AddSeedItem("Smazat staré větve", "Po merge pull requestů.", TodoPriority.Low, isCompleted: false, now.AddMinutes(-20), userId: "bob");
+
+        // charlie
+        AddSeedItem("Spustit dvě instance API", "Porty 5258 a 5259.", TodoPriority.High, isCompleted: false, now.AddDays(-3), userId: "charlie", dueAtUtc: now.AddDays(-1));
+        AddSeedItem("Připravit zátěžový test k6", "50 virtuálních uživatelů.", TodoPriority.Normal, isCompleted: true, now.AddDays(-7), userId: "charlie", dueAtUtc: now.AddDays(-5));
+        AddSeedItem("Napsat integrační testy MCP", "Testy nad ukázkovými daty.", TodoPriority.Normal, isCompleted: false, now.AddHours(-1), userId: "charlie", dueAtUtc: now.AddDays(3));
+        AddSeedItem("Porovnat odezvy instancí", "Hlavička X-Response-Time-Ms.", TodoPriority.Low, isCompleted: true, now.AddDays(-2), userId: "charlie");
     }
 
-    private void AddSeedItem(string title, string description, TodoPriority priority, bool isCompleted, DateTimeOffset createdAtUtc)
+    private void AddSeedItem(
+        string title,
+        string description,
+        TodoPriority priority,
+        bool isCompleted,
+        DateTimeOffset createdAtUtc,
+        string? userId = null,
+        DateTimeOffset? dueAtUtc = null)
     {
         var item = new TodoItem
         {
@@ -296,6 +329,8 @@ public sealed class InMemoryTodoRepository : ITodoRepository
             IsCompleted = isCompleted,
             CreatedAtUtc = createdAtUtc,
             CompletedAtUtc = isCompleted ? createdAtUtc.AddHours(1) : null,
+            DueAtUtc = dueAtUtc,
+            UserId = userId,
             UpdatedAtUtc = createdAtUtc
         };
 

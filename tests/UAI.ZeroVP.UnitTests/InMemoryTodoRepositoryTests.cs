@@ -38,12 +38,14 @@ public sealed class InMemoryTodoRepositoryTests
 
     // --- Seedování ukázkových dat ---------------------------------------------
 
+    private const int SeededItemCount = 18;
+
     [Fact]
-    public async Task Constructor_WithSeedEnabled_InsertsFourSampleItems()
+    public async Task Constructor_WithSeedEnabled_InsertsSampleItems()
     {
         var repository = new InMemoryTodoRepository(new InMemoryTodoOptions { SeedSampleData = true });
 
-        Assert.Equal(4, await repository.CountAsync());
+        Assert.Equal(SeededItemCount, await repository.CountAsync());
     }
 
     [Fact]
@@ -51,7 +53,54 @@ public sealed class InMemoryTodoRepositoryTests
     {
         var repository = new InMemoryTodoRepository();
 
-        Assert.Equal(4, await repository.CountAsync());
+        Assert.Equal(SeededItemCount, await repository.CountAsync());
+    }
+
+    [Fact]
+    public async Task Seed_ContainsDiverseUsersStatesPrioritiesAndDueDates()
+    {
+        var repository = new InMemoryTodoRepository(new InMemoryTodoOptions { SeedSampleData = true });
+
+        var items = await repository.GetAllAsync();
+
+        Assert.Contains(items, item => item.UserId is null);
+        Assert.Equal(
+            Enum.GetValues<TodoPriority>().Order(),
+            items.Select(item => item.Priority).Distinct().Order());
+        Assert.Contains(items, item => item.DueAtUtc is not null);
+        Assert.Contains(items, item => item.DueAtUtc is null);
+
+        // Each user has both open and completed tasks, so every filter combination
+        // of list_todos (isCompleted + userId) returns a non-empty subset.
+        foreach (var userId in new[] { "alice", "bob", "charlie" })
+        {
+            var all = await repository.GetAllAsync(userId: userId);
+            var open = await repository.GetAllAsync(isCompleted: false, userId: userId);
+            var completed = await repository.GetAllAsync(isCompleted: true, userId: userId);
+
+            Assert.NotEmpty(open);
+            Assert.NotEmpty(completed);
+            Assert.Equal(all.Count, open.Count + completed.Count);
+            Assert.All(all, item => Assert.Equal(userId, item.UserId));
+        }
+
+        Assert.NotEmpty(await repository.GetAllAsync(isCompleted: true));
+        Assert.NotEmpty(await repository.GetAllAsync(isCompleted: false));
+    }
+
+    [Fact]
+    public async Task Seed_EveryItemCanBeLoadedById()
+    {
+        var repository = new InMemoryTodoRepository(new InMemoryTodoOptions { SeedSampleData = true });
+
+        foreach (var item in await repository.GetAllAsync())
+        {
+            var loaded = await repository.GetByIdAsync(item.Id);
+
+            Assert.NotNull(loaded);
+            Assert.Equal(item.Title, loaded.Title);
+            Assert.Equal(item.UserId, loaded.UserId);
+        }
     }
 
     [Fact]

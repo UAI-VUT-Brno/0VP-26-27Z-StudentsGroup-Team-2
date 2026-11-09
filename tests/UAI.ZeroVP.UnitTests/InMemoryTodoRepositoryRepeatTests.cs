@@ -54,11 +54,13 @@ public sealed class InMemoryTodoRepositoryRepeatTests
     }
 
     [Fact]
-    public async Task Seed_SampleItemsHaveNoDueDate()
+    public async Task Seed_SampleItemsHaveDueDatesOnlyAfterCreation()
     {
         var repository = new InMemoryTodoRepository(new InMemoryTodoOptions { SeedSampleData = true });
 
-        Assert.All(await repository.GetAllAsync(), item => Assert.Null(item.DueAtUtc));
+        Assert.All(
+            await repository.GetAllAsync(),
+            item => Assert.True(item.DueAtUtc is null || item.DueAtUtc > item.CreatedAtUtc));
     }
 
     // --- AddRangeAsync – successful store -------------------------------------

@@ -6,10 +6,10 @@ Tento dokument slouží k evidenci aktivity týmu, sledování procesu vývoje (
 
 | Člen týmu (GitHub handle) | Role v týmu | Přidělená oblast / Issue |
 | ----- | ----- | ----- |
-| **@Castulik** | Team Leader | Koordinace týmu, správa `main`, Code Reviews (PR #32, #33, #34, #40, #41, #42), Issue #25 (0VP-T2-08): DevSecOps security scanning v CI & Issue #39 (0VP-T2-18): Manuální ověření MCP serveru (Inspector, Copilot/Gemini), `README.md`, `WORKLOG.md` (Reviewer: @luxat26) |
-| **@pmikes1** | Vývojář (Dev 1) | Issue #26 (0VP-T2-09): JSON perzistence úložiště (PR #32) & Issue #36 (0VP-T2-15): Read-only MCP server (`/mcp`) s nástroji `list_todos` a `get_todo` (PR #40) |
-| **@stepanch284** | Vývojář (Dev 2) | Issue #28 & #29 (0VP-T2-11, 0VP-T2-12): `UserId` a filtr úkolů (PR #34) & Issue #37 (0VP-T2-16): Rozšíření vzorových úkolů pro MCP dotazy (PR #41) |
-| **@luxat26** | Vývojář (Dev 3) | Issue #27 & #31: Docker a multi-instance (PR #33) & Issue #38 (0VP-T2-17): Automatizované integrační testy MCP protokolu přes MCP klienta (PR #42) |
+| **@Castulik** | Team Leader | Koordinace týmu, správa `main`, Code Reviews (PR #32, #33, #34, #40, #41, #42, #43), Issue #25 (0VP-T2-08): DevSecOps security scanning v CI, Issue #39 (0VP-T2-18): Manuální ověření MCP serveru (Inspector, Copilot/Gemini) & **Issue #47 (0VP-T2-22): Zdokumentování limitace neomezeného výpisu a škálování MCP v `README.md`, `TodoMcpTools.cs` a `WORKLOG.md`** (Reviewer: @pmikes1 / @luxat26) |
+| **@pmikes1** | Vývojář (Dev 1) | Issue #26 (0VP-T2-09): JSON perzistence úložiště (PR #32), Issue #36 (0VP-T2-15): Read-only MCP server (`/mcp`) (PR #40) & **Issue #45 (0VP-T2-20): Refaktor `McpTestFixture` na jediný host bez duplicity** (Reviewer: @Castulik / @luxat26) |
+| **@stepanch284** | Vývojář (Dev 2) | Issue #28 & #29 (0VP-T2-11/12): `UserId` a filtr úkolů (PR #34), Issue #37 (0VP-T2-16): Rozšíření vzorových úkolů pro MCP dotazy (PR #41) & **Issue #44 (0VP-T2-19): Fix Windows file locking contention v perzistenci úložiště** (Reviewer: @Castulik / @pmikes1) |
+| **@luxat26** | Vývojář (Dev 3) | Issue #27 & #31: Docker a multi-instance (PR #33), Issue #38 (0VP-T2-17): Automatizované integrační testy MCP protokolu přes MCP klienta (PR #42) & **Issue #46 (0VP-T2-21): Asserty na publikovaná schémata a anotace nástrojů v MCP testech** (Reviewer: @Castulik / @pmikes1) |
 
 ## 2. Záznam aktivit a revizí (Changelog & Reviews)
 
@@ -32,7 +32,12 @@ Tento dokument slouží k evidenci aktivity týmu, sledování procesu vývoje (
 | *2026-11-09* | @pmikes1 | Issue #36 (0VP-T2-15): Read-only MCP server na `/mcp`, balíček `ModelContextProtocol.AspNetCore`, nástroje `list_todos` a `get_todo`, 9 unit testů v `TodoMcpToolsTests.cs` | `feature/mcp-server` | PR #40 | @Castulik | Schváleno / Merged (`f6c2a43`) |
 | *2026-11-09* | @stepanch284 | Issue #37 (0VP-T2-16): Rozšíření vzorových úkolů pro MCP dotazy (18 úkolů s různými `UserId`, stavy a prioritami v `Seed()` i `todos.json`), aktualizace testů v `InMemoryTodoRepositoryTests.cs` | `feature/mcp-sample-data` | PR #41 | @Castulik | Schváleno / Merged (`c187d71`) |
 | *2026-11-09* | @luxat26 | Issue #38 (0VP-T2-17): Automatizované integrační testy MCP protokolu přes `McpClient` na dynamickém Kestrel portu (`McpServerIntegrationTests.cs`, 8 testů, `Microsoft.AspNetCore.Mvc.Testing`) | `feature/mcp-integration-tests` | PR #42 | @Castulik | Schváleno / Merged (`0c895a6`) |
-| *2026-11-09* | @Castulik | Issue #39 (0VP-T2-18): Manuální ověření MCP serveru (Inspector, Copilot/Gemini), bezpečnostní varování a návody v `README.md`, aktualizace evidencí a retrospektivy ve `WORKLOG.md` | `docs/mcp-verification` | PR #43 | @luxat26 | V revizi (připraveno k merge) |
+| *2026-11-09* | @Castulik | Issue #39 (0VP-T2-18): Manuální ověření MCP serveru (Inspector, Copilot/Gemini), bezpečnostní varování a návody v `README.md`, aktualizace evidencí a retrospektivy ve `WORKLOG.md` | `docs/mcp-verification` | PR #43 | @luxat26 | Schváleno / Merged (`06c8cf9`) |
+| *2026-11-11* | @Castulik | Založení, specifikace a zadání bezkonfliktních issues #44–#47 reagujících na zpětnou vazbu vyučujícího (duplicita hosta, schéma MCP, škálování, Windows file lock) | `main` | – | – | Dokončeno |
+| *2026-11-11* | @Castulik | Issue #47 (0VP-T2-22): Architektonická poznámka ke škálování `list_todos` v `README.md`, XML `<remarks>` v `TodoMcpTools.cs`, kompletní aktualizace `WORKLOG.md` | `docs/t2-22-mcp-unbounded-listing-note` | PR #48 | @pmikes1, @luxat26 | Otevřeno (v revizi) |
+| *2026-11-11* | @stepanch284 | Issue #44 (0VP-T2-19): Ošetření souběžného zamykání souboru na Windows NTFS v `InMemoryTodoRepository.SaveToFileAsync` pomocí retry smyčky | `fix/t2-19-windows-persistence-file-lock` | – | @Castulik, @pmikes1 | Přiřazeno (ve vývoji) |
+| *2026-11-11* | @pmikes1 | Issue #45 (0VP-T2-20): Refaktor `McpTestFixture` na jediný `IHost` s dynamickým Kestrel portem bez duplicitní instance hosta | `refactor/t2-20-single-mcp-test-host` | – | @Castulik, @luxat26 | Přiřazeno (ve vývoji) |
+| *2026-11-11* | @luxat26 | Issue #46 (0VP-T2-21): Rozšíření MCP testů o validaci publikovaných `InputSchema` parametrů a `ReadOnly` anotací u `list_todos` a `get_todo` | `test/t2-21-mcp-schema-assertions` | – | @Castulik, @pmikes1 | Čeká na PR #45 |
 
 ## 3. Poznámky k průběhu a řešení problémů (Retrospektiva)
 
@@ -91,3 +96,8 @@ Tento dokument slouží k evidenci aktivity týmu, sledování procesu vývoje (
 
 * **Issue 47 (0VP-T2-22: Zdokumentování limitace neomezeného výpisu a škálování MCP):**
   * **@Castulik:** Reakce na zpětnou vazbu vyučujícího z kódu týmu (Team 2). Pro tým založil a rozplánoval sadu 4 bezkonfliktních issues (#44 pro @stepanch284, #45 pro @pmikes1, #46 pro @luxat26 a #47 pro @Castulik) včetně podrobných checklistů, přiřazení větví a závislostí. V `README.md` v sekci MCP doplnil podsekci *Architektonická poznámka ke škálování (Scalability & Design Notes)* zdůvodňující záměrné neomezené listování (`list_todos is unbounded`) v rámci výukového in-memory projektu a specifikující doporučené kurzorové stránkování pro produkci k ochraně kontextového okna LLM. Stejnou architektonickou poznámku doplnil do XML dokumentace metody `TodoMcpTools.ListTodos`. Aktualizoval `WORKLOG.md`. Review provádí @pmikes1 / @luxat26.
+
+* **Issues 44–46 (Přiřazené navazující úkoly týmu řešící zpětnou vazbu vyučujícího):**
+  * **Issue 44 (0VP-T2-19) – @stepanch284:** Ošetření souběžného zamykání souboru na Windows NTFS v `InMemoryTodoRepository.SaveToFileAsync` pomocí retry smyčky s exponenciálním/náhodným backoffem, aby test `SaveToFileAsync_TwoInstancesSavingAtOnce_LeaveValidFile` procházel na 100 % spolehlivě i při souběžném lokálním běhu instancí na Windows.
+  * **Issue 45 (0VP-T2-20) – @pmikes1:** Odstranění duplicitní instance hosta v `McpTestFixture.CreateHost`, vytknutí fixture do vlastního souboru `tests/UAI.ZeroVP.UnitTests/McpTestFixture.cs` a zajištění jediného běžícího `IHost` s dynamickým Kestrel portem.
+  * **Issue 46 (0VP-T2-21) – @luxat26:** Rozšíření MCP integračních testů v `tests/UAI.ZeroVP.UnitTests/McpServerIntegrationTests.cs` o explicitní asserty na publikovaná schémata parametrů (`InputSchema` – volitelné `isCompleted`, `userId` a povinné `id`) a `ReadOnly` anotace.

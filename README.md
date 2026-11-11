@@ -229,6 +229,13 @@ Běžící MCP endpoint lze napojit přímo do moderních vývojových prostřed
   * *„Zobraz detail úkolu s ID 7f5556a2-3064-4eb5-9a0d-b52def369d2d.“*  
     *(AI asistent vyvolá nástroj `get_todo` s parametrem `{"id": "..."}`).*
 
+#### Architektonická poznámka ke škálování (Scalability & Design Notes)
+
+Nástroj `list_todos` vrací všechny odpovídající záznamy naráz bez stránkování (**unbounded listing**).
+
+* **Důvod návrhu:** Pro účely výuky a in-memory ukázkového projektu s desítkami položek je tento přístup záměrný a plně dostačující – zjednodušuje klientský kód a umožňuje AI asistentovi získat celkový přehled v jednom dotazu.
+* **Škálování a doporučení pro produkci:** V reálném produkčním nasazení s tisíci úkoly by neomezená odpověď mohla vyčerpat kontextové okno (context window) AI asistenta a způsobit latenci či vysokou spotřebu tokenů. Pro takový scénář je doporučeno zavést kurzorové stránkování (cursor-based pagination) nebo volitelné parametry `limit` a `cursor`/`offset`, které umožní postupné procházení datasetu po dávkách.
+
 
 ## Swagger
 

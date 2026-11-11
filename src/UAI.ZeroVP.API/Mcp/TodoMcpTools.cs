@@ -24,6 +24,11 @@ public sealed class TodoMcpTools
     }
 
     /// <summary>Returns tasks, optionally filtered by completion status and user.</summary>
+    /// <remarks>
+    /// Scalability consideration: This listing is unbounded and returns the full matching dataset without pagination.
+    /// While suitable for this educational in-memory scope, larger production datasets should introduce cursor-based
+    /// pagination or limit/offset parameters to prevent excessive memory usage and LLM context window exhaustion.
+    /// </remarks>
     [McpServerTool(Name = "list_todos", ReadOnly = true)]
     [Description("Lists ToDo tasks sorted by priority and creation time. Optionally filters by completion status and by the user the task belongs to.")]
     public async Task<IReadOnlyList<TodoItemDto>> ListTodos(

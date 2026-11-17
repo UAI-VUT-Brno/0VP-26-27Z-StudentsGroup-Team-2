@@ -1,85 +1,11 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Text.Json.Serialization;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Hosting.Server;
-using Microsoft.AspNetCore.Hosting.Server.Features;
-using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using ModelContextProtocol.Client;
 using ModelContextProtocol.Protocol;
-using UAI.ZeroVP.Data.InMemory;
 using UAI.ZeroVP.DTO;
 using Xunit;
 
 namespace UAI.ZeroVP.UnitTests;
-
-/// <summary>
-/// Shared test fixture starting the ASP.NET Core API on a dynamic Kestrel port
-/// with sample data seeded in memory and disk persistence disabled.
-/// </summary>
-public sealed class McpTestFixture : WebApplicationFactory<Program>
-{
-    private IHost? _host;
-    public string ServerAddress { get; private set; } = string.Empty;
-
-    protected override void ConfigureWebHost(IWebHostBuilder builder)
-    {
-        builder.UseSetting("Todo:StorageFilePath", "");
-        builder.UseSetting("Todo:SeedSampleData", "true");
-
-        builder.ConfigureServices(services =>
-        {
-            services.PostConfigure<InMemoryTodoOptions>(options =>
-            {
-                options.SeedSampleData = true;
-                options.StorageFilePath = null;
-            });
-        });
-
-        builder.UseUrls("http://127.0.0.1:0");
-    }
-
-    protected override IHost CreateHost(IHostBuilder builder)
-    {
-        var testHost = builder.Build();
-
-        builder.ConfigureWebHost(webHostBuilder => webHostBuilder.UseKestrel());
-        _host = builder.Build();
-        _host.Start();
-
-        var server = _host.Services.GetRequiredService<IServer>();
-        var addresses = server.Features.Get<IServerAddressesFeature>();
-        ServerAddress = addresses!.Addresses.First();
-
-        return testHost;
-    }
-
-    /// <summary>Creates a connected MCP client pointing to the dynamic test server.</summary>
-    public async Task<McpClient> CreateMcpClientAsync()
-    {
-        CreateDefaultClient(); // Initialize host if needed
-
-        var transport = new HttpClientTransport(new HttpClientTransportOptions
-        {
-            Endpoint = new Uri($"{ServerAddress}/mcp"),
-            TransportMode = HttpTransportMode.AutoDetect
-        });
-
-        return await McpClient.CreateAsync(transport);
-    }
-
-    public override async ValueTask DisposeAsync()
-    {
-        if (_host is not null)
-        {
-            await _host.StopAsync();
-            _host.Dispose();
-        }
-
-        await base.DisposeAsync();
-    }
-}
 
 /// <summary>
 /// End-to-end integration tests verifying MCP protocol compliance against the running API.

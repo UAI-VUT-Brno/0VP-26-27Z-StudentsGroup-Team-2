@@ -38,6 +38,10 @@ public sealed class InMemoryTodoRepository : ITodoRepository
         Converters = { new JsonStringEnumConverter() }
     };
 
+    // Retry policy for replacing the storage file (see ReplaceStorageFileAsync).
+    private const int MaxReplaceAttempts = 5;
+    private const int ReplaceRetryBaseDelayMs = 15;
+
     private readonly ConcurrentDictionary<Guid, TodoItem> _items = new();
     private readonly TimeProvider _timeProvider;
     private readonly ILogger<InMemoryTodoRepository> _logger;
@@ -103,14 +107,73 @@ public sealed class InMemoryTodoRepository : ITodoRepository
         // write never leaves a half-written (corrupted) todos.json behind. The temporary name is
         // unique, so instances sharing one file (docker compose down stops them together) do not collide.
         var tempFilePath = $"{_storageFilePath}.{Guid.NewGuid():N}.tmp";
-        await using (var stream = File.Create(tempFilePath))
+        try
         {
-            await JsonSerializer.SerializeAsync(stream, items, JsonOptions, cancellationToken);
+            await using (var stream = File.Create(tempFilePath))
+            {
+                await JsonSerializer.SerializeAsync(stream, items, JsonOptions, cancellationToken);
+            }
+
+            await ReplaceStorageFileAsync(tempFilePath, _storageFilePath, cancellationToken);
+        }
+        finally
+        {
+            // After a successful move the temporary file no longer exists; otherwise
+            // (failed write, retries exhausted, cancellation) it must not be left on disk.
+            TryDeleteFile(tempFilePath);
         }
 
-        File.Move(tempFilePath, _storageFilePath, overwrite: true);
-
         _logger.LogInformation("Saved {Count} tasks to {StorageFilePath}.", items.Count, _storageFilePath);
+    }
+
+    /// <summary>
+    /// Replaces <paramref name="targetPath"/> with <paramref name="tempFilePath"/>, retrying on transient failures.
+    /// <para>
+    /// On Windows (NTFS) the replace can fail with <see cref="UnauthorizedAccessException"/> or
+    /// <see cref="IOException"/> while another instance is replacing the same file, or while an
+    /// antivirus scanner briefly holds a handle to it. Such locks are short-lived, so a few retries
+    /// with a randomized backoff are enough; the last failure is rethrown.
+    /// </para>
+    /// </summary>
+    private async Task ReplaceStorageFileAsync(string tempFilePath, string targetPath, CancellationToken cancellationToken)
+    {
+        for (var attempt = 1; ; attempt++)
+        {
+            try
+            {
+                File.Move(tempFilePath, targetPath, overwrite: true);
+                return;
+            }
+            catch (Exception ex) when (ex is UnauthorizedAccessException or IOException && attempt < MaxReplaceAttempts)
+            {
+                // Exponential backoff (15, 30, 60, ... ms) with random jitter so two instances
+                // that collided once do not retry in lockstep.
+                var delay = TimeSpan.FromMilliseconds(
+                    ReplaceRetryBaseDelayMs * (1 << (attempt - 1)) + Random.Shared.Next(0, ReplaceRetryBaseDelayMs));
+
+                _logger.LogWarning(
+                    ex,
+                    "Replacing {StorageFilePath} failed (attempt {Attempt} of {MaxAttempts}), retrying in {DelayMs} ms.",
+                    targetPath,
+                    attempt,
+                    MaxReplaceAttempts,
+                    (int)delay.TotalMilliseconds);
+
+                await Task.Delay(delay, cancellationToken);
+            }
+        }
+    }
+
+    private void TryDeleteFile(string path)
+    {
+        try
+        {
+            File.Delete(path);
+        }
+        catch (Exception ex) when (ex is UnauthorizedAccessException or IOException)
+        {
+            _logger.LogWarning(ex, "Could not delete temporary file {TempFilePath}.", path);
+        }
     }
 
     /// <inheritdoc />

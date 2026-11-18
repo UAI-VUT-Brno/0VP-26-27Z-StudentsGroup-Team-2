@@ -42,4 +42,8 @@ public sealed record TodoItemDto
     /// <summary>Identifikátor uživatele, kterému úkol patří, nebo <c>null</c>.</summary>
     /// <example>jan.novak</example>
     public string? UserId { get; init; }
+
+    /// <summary>Optional category tag for grouping the todo item, or <c>null</c>.</summary>
+    /// <example>Work</example>
+    public string? Category { get; init; }
 }

@@ -42,4 +42,9 @@ public sealed record RepeatTodoItemRequest
     /// <example>jan.novak</example>
     [StringLength(200, ErrorMessage = "Identifikátor uživatele smí mít nejvýše 200 znaků.")]
     public string? UserId { get; init; }
+
+    /// <summary>Optional category tag, up to 50 characters.</summary>
+    /// <example>Work</example>
+    [StringLength(50, ErrorMessage = "Category cannot exceed 50 characters.")]
+    public string? Category { get; init; }
 }

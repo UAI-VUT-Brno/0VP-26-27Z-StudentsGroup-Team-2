@@ -40,6 +40,48 @@ public sealed class McpServerIntegrationTests : IClassFixture<McpTestFixture>
         return deserialized;
     }
 
+    private static void AssertToolSchemaAndReadOnly(
+        McpClientTool tool,
+        string[] expectedProperties,
+        string[] expectedRequired)
+    {
+        Assert.False(string.IsNullOrWhiteSpace(tool.Description));
+        Assert.NotNull(tool.ProtocolTool);
+        Assert.True(
+            tool.ProtocolTool.Annotations?.ReadOnlyHint == true,
+            $"Expected tool '{tool.Name}' to advertise ReadOnlyHint = true.");
+
+        var schema = tool.ProtocolTool.InputSchema;
+        Assert.Equal(JsonValueKind.Object, schema.ValueKind);
+        Assert.Equal("object", schema.GetProperty("type").GetString());
+
+        Assert.True(
+            schema.TryGetProperty("properties", out var properties),
+            $"Expected '{tool.Name}' InputSchema to define 'properties'.");
+        Assert.Equal(JsonValueKind.Object, properties.ValueKind);
+
+        foreach (var propertyName in expectedProperties)
+        {
+            Assert.True(
+                properties.TryGetProperty(propertyName, out _),
+                $"Expected '{tool.Name}' InputSchema properties to contain '{propertyName}'.");
+        }
+
+        var requiredNames = schema.TryGetProperty("required", out var required)
+            ? required.EnumerateArray().Select(element => element.GetString()).ToHashSet(StringComparer.Ordinal)
+            : new HashSet<string?>(StringComparer.Ordinal);
+
+        foreach (var requiredName in expectedRequired)
+        {
+            Assert.Contains(requiredName, requiredNames);
+        }
+
+        foreach (var optionalName in expectedProperties.Except(expectedRequired, StringComparer.Ordinal))
+        {
+            Assert.DoesNotContain(optionalName, requiredNames);
+        }
+    }
+
     [Fact]
     public async Task ListTools_ExposesListTodosAndGetTodoWithDescriptions()
     {
@@ -50,10 +92,10 @@ public sealed class McpServerIntegrationTests : IClassFixture<McpTestFixture>
         Assert.Equal(2, tools.Count);
 
         var listTool = Assert.Single(tools, t => t.Name == "list_todos");
-        Assert.False(string.IsNullOrWhiteSpace(listTool.Description));
+        AssertToolSchemaAndReadOnly(listTool, ["isCompleted", "userId"], []);
 
         var getTool = Assert.Single(tools, t => t.Name == "get_todo");
-        Assert.False(string.IsNullOrWhiteSpace(getTool.Description));
+        AssertToolSchemaAndReadOnly(getTool, ["id"], ["id"]);
     }
 
     [Fact]

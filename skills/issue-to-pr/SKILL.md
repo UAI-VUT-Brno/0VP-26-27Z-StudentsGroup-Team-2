@@ -137,8 +137,9 @@ Run it **once per tier, strictly in dependency order**:
 Skip tiers marked `none`. After each tier run `dotnet build UAI.ZeroVP.sln --configuration Release`.
 A build error is handed to Stage 4 and does **not** stop synthesis of later tiers.
 
-After the last tier, create one commit per tier that changed (for example `feat(...)` for code and
-`test(...)` for tests) as described in `rules/git-workflow.md`.
+After the last tier, on Windows run `powershell -NoProfile -ExecutionPolicy Bypass -File skills/issue-to-pr/scripts/verify-and-test.ps1 -SkipTests`
+to enforce UTF-8 BOM on any `.cs` files edited or created by IDE tools, then create one commit per tier that changed
+(for example `feat(...)` for code and `test(...)` for tests) as described in `rules/git-workflow.md`.
 
 ## Stage 4 – Self-healing test loop
 

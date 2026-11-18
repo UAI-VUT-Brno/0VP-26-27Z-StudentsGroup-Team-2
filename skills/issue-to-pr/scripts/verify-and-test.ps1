@@ -168,21 +168,15 @@ if (-not $SkipTests) {
             [void]$warnings.Add($line.Trim())
         }
 
-        if ($line -match '^\s*(?:Failed|Neúspěšné)\s+([^\[\s].+?)(?:\s+\[\d+.*)?$') {
+        if ($line -match '^\s*(?:Failed|Ne\u00fasp\u011b\u0161n\u00e9)\s+([^\[\s].+?)(?:\s+\[\d+.*)?$') {
             $testName = $Matches[1].Trim()
             if (-not $failedTests.Contains($testName)) {
                 $failedTests.Add($testName)
             }
         }
 
-        # Match English and Czech dotnet test summary lines
-        if ($line -match '(?:Failed|Neúspěšné):\s*(\d+),\s*(?:Passed|Úspěšné):\s*(\d+),\s*(?:Skipped|Přeskočeno):\s*(\d+),\s*(?:Total|Celkem):\s*(\d+)') {
-            $failedCount += [int]$Matches[1]
-            $passedCount += [int]$Matches[2]
-            $skippedCount += [int]$Matches[3]
-            $totalCount += [int]$Matches[4]
-        }
-        elseif ($line -match '(?:Neúspěšné|Failed):\s*(\d+),\s*(?:Úspěšné|Passed):\s*(\d+),\s*(?:Přeskočeno|Skipped):\s*(\d+),\s*(?:Celkem|Total):\s*(\d+)') {
+        # Match English and Czech dotnet test summary lines (ASCII escapes work regardless of PowerShell codepage)
+        if ($line -match '(?:Failed|Ne\u00fasp\u011b\u0161n\u00e9):\s*(\d+),\s*(?:Passed|\u00dasp\u011b\u0161n\u00e9):\s*(\d+),\s*(?:Skipped|P\u0159esko\u010deno):\s*(\d+),\s*(?:Total|Celkem):\s*(\d+)') {
             $failedCount += [int]$Matches[1]
             $passedCount += [int]$Matches[2]
             $skippedCount += [int]$Matches[3]

@@ -92,7 +92,7 @@ public sealed class McpServerIntegrationTests : IClassFixture<McpTestFixture>
         Assert.Equal(2, tools.Count);
 
         var listTool = Assert.Single(tools, t => t.Name == "list_todos");
-        AssertToolSchemaAndReadOnly(listTool, ["isCompleted", "userId"], []);
+        AssertToolSchemaAndReadOnly(listTool, ["isCompleted", "userId", "category"], []);
 
         var getTool = Assert.Single(tools, t => t.Name == "get_todo");
         AssertToolSchemaAndReadOnly(getTool, ["id"], ["id"]);

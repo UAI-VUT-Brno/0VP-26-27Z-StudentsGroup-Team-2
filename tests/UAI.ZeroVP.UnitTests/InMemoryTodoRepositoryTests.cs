@@ -311,7 +311,7 @@ public sealed class InMemoryTodoRepositoryTests
         cts.Cancel();
         var token = cts.Token;
 
-        await Assert.ThrowsAsync<OperationCanceledException>(() => repository.GetAllAsync(null, null, token));
+        await Assert.ThrowsAsync<OperationCanceledException>(() => repository.GetAllAsync(null, null, null, token));
         await Assert.ThrowsAsync<OperationCanceledException>(() => repository.GetByIdAsync(Guid.NewGuid(), token));
         await Assert.ThrowsAsync<OperationCanceledException>(() => repository.AddAsync(CreateItem(), token));
         await Assert.ThrowsAsync<OperationCanceledException>(() => repository.UpdateAsync(CreateItem(), token));

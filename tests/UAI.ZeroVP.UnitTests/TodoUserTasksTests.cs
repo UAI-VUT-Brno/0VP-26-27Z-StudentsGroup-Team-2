@@ -178,11 +178,11 @@ public sealed class TodoUserTasksTests
         var items = new[] { CreateItem("alice"), CreateItem("alice") };
         var repository = new Mock<ITodoRepository>(MockBehavior.Strict);
         repository
-            .Setup(r => r.GetAllAsync(false, "alice", It.IsAny<CancellationToken>()))
+            .Setup(r => r.GetAllAsync(false, "alice", null, It.IsAny<CancellationToken>()))
             .ReturnsAsync(items);
         var controller = new TodosController(repository.Object, TimeProvider.System, NullLogger<TodosController>.Instance);
 
-        var result = await controller.GetAll(false, "alice", CancellationToken.None);
+        var result = await controller.GetAll(false, "alice", null, CancellationToken.None);
 
         var ok = Assert.IsType<OkObjectResult>(result.Result);
         var dtos = Assert.IsAssignableFrom<IReadOnlyList<TodoItemDto>>(ok.Value);

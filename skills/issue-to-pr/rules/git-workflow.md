@@ -52,6 +52,8 @@ Staging:
 
 Run all of them on the branch before pushing. Every one must pass.
 
+On Windows, the helper script [`skills/issue-to-pr/scripts/verify-and-test.ps1`](../scripts/verify-and-test.ps1) runs the BOM check/fix, `git diff --check`, and `dotnet test UAI.ZeroVP.sln --configuration Release` in one command (pass `-CheckOnly -SkipTests` for read-only pre-push gate verification).
+
 **Whitespace errors:**
 
 ```bash

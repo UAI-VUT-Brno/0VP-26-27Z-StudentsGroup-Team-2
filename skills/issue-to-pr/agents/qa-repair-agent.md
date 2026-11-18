@@ -9,6 +9,7 @@ tools:
 allowedCommands:
   - "dotnet build UAI.ZeroVP.sln --configuration Release"
   - "dotnet test UAI.ZeroVP.sln --configuration Release"
+  - "powershell -NoProfile -ExecutionPolicy Bypass -File skills/issue-to-pr/scripts/verify-and-test.ps1"
 EnableWriteTools: true
 ---
 

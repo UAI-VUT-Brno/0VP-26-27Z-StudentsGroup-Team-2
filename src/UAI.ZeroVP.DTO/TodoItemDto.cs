@@ -1,4 +1,4 @@
-namespace UAI.ZeroVP.DTO;
+﻿namespace UAI.ZeroVP.DTO;
 
 /// <summary>
 /// Úkol tak, jak ho API vrací klientovi.

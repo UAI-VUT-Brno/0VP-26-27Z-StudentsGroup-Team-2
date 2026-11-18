@@ -35,6 +35,10 @@ Accept: application/json
 GET {{UAI.ZeroVP.API_HostAddress}}/api/todos?userId=jan.novak&isCompleted=false
 Accept: application/json
 
+### Úkoly podle kategorie (nerozlišuje velikost písmen)
+GET {{UAI.ZeroVP.API_HostAddress}}/api/todos?category=Work
+Accept: application/json
+
 ### Nový úkol
 POST {{UAI.ZeroVP.API_HostAddress}}/api/todos
 Content-Type: application/json
@@ -42,7 +46,8 @@ Content-Type: application/json
 {
   "title": "Vyzkoušet docker build",
   "description": "Postavit image z vícefázového Dockerfile.",
-  "priority": "High"
+  "priority": "High",
+  "category": "Work"
 }
 
 ### Neplatný vstup – vrátí 400 s ValidationProblemDetails

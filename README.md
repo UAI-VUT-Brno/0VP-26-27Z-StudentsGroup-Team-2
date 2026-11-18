@@ -110,11 +110,11 @@ V repozitáři je k dispozici vícefázový `Dockerfile` a `compose.yaml` pro sp
 
 | Metoda | Cesta | Popis |
 |---|---|---|
-| `GET` | `/api/todos` | Seznam úkolů; volitelný filtr `?isCompleted=true\|false` a filtr uživatele `?userId=...` |
+| `GET` | `/api/todos` | Seznam úkolů; volitelný filtr `?isCompleted=true\|false`, filtr uživatele `?userId=...` a filtr kategorie `?category=...` |
 | `GET` | `/api/todos/{id}` | Detail úkolu |
-| `POST` | `/api/todos` | Založení úkolu (volitelně s `userId`) → `201 Created` + hlavička `Location` |
+| `POST` | `/api/todos` | Založení úkolu (volitelně s `userId` a `category`) → `201 Created` + hlavička `Location` |
 | `POST` | `/api/todos/repeat` | Založení týdenní řady úkolů → `201 Created` + hlavička `Location` na `/api/todos` |
-| `PUT` | `/api/todos/{id}` | Úplná aktualizace úkolu (včetně `userId`) |
+| `PUT` | `/api/todos/{id}` | Úplná aktualizace úkolu (včetně `userId` a `category`) |
 | `POST` | `/api/todos/{id}/complete` | Označení úkolu za dokončený |
 | `DELETE` | `/api/todos/{id}` | Smazání úkolu → `204 No Content` |
 | `GET` | `/api/info` | Informace o instanci (`instanceId`, `machineName`, `processId`, prostředí, uptime, počet úkolů) |
@@ -144,6 +144,7 @@ Endpoint slouží k hromadnému vytvoření počátečního úkolu a zadaného p
 - `firstDueAtUtc` (DateTimeOffset, povinný): Datum a čas prvního výskytu v UTC.
 - `repeatCount` (int, povinný, rozsah 1–52): Počet dalších týdenních opakování po prvním termínu.
 - `userId` (string, volitelný, max 200 znaků): Identifikátor uživatele; přiřadí se všem vytvořeným výskytům.
+- `category` (string, volitelný, max 50 znaků): Kategorie úkolu; přiřadí se všem vytvořeným výskytům.
 
 **Příklad kalkulace termínů:**  
 Zadání například `repeatCount: 3` vytvoří celkem **4 samostatné úkoly**:
@@ -173,6 +174,7 @@ Server vystavuje dva nástroje přistupující přímo k existujícímu rozhran�
    * **Volitelné parametry:**
      * `isCompleted` (boolean, volitelný): `true` = pouze dokončené úkoly, `false` = pouze otevřené úkoly; vynecháno = všechny úkoly bez ohledu na stav.
      * `userId` (string, volitelný): vrátí pouze úkoly zadaného uživatele (např. `"alice"`); vynecháno = úkoly všech uživatelů.
+     * `category` (string, volitelný): vrátí pouze úkoly zadané kategorie bez rozlišení velikosti písmen (např. `"Work"`); vynecháno = úkoly všech kategorií.
 2. **`get_todo`**
    * **Popis:** Vrátí detail jednoho konkrétního úkolu podle jeho jednoznačného identifikátoru.
    * **Parametry:**
@@ -269,10 +271,13 @@ curl http://localhost:5258/api/todos
 # Seznam úkolů konkrétního uživatele
 curl "http://localhost:5258/api/todos?userId=jan.novak&isCompleted=false"
 
-# Založení jednoho úkolu s uživatelem
+# Seznam úkolů podle kategorie
+curl "http://localhost:5258/api/todos?category=Work"
+
+# Založení jednoho úkolu s uživatelem a kategorií
 curl -X POST http://localhost:5258/api/todos \
     -H "Content-Type: application/json" \
-    -d '{"title":"Napsat Dockerfile","priority":"High","userId":"jan.novak"}'
+    -d '{"title":"Napsat Dockerfile","priority":"High","userId":"jan.novak","category":"Work"}'
 
 # Založení týdenní řady úkolů (první výskyt + 3 opakování = 4 úkoly)
 curl -X POST http://localhost:5258/api/todos/repeat \

@@ -35,6 +35,14 @@ Accept: application/json
 GET {{UAI.ZeroVP.API_HostAddress}}/api/todos?userId=jan.novak&isCompleted=false
 Accept: application/json
 
+### Úkoly podle projektu (bez rozlišení velikosti písmen)
+GET {{UAI.ZeroVP.API_HostAddress}}/api/todos?project=ZeroVP
+Accept: application/json
+
+### Kombinovaný filtr – projekt, uživatel a stav dokončení
+GET {{UAI.ZeroVP.API_HostAddress}}/api/todos?project=ZeroVP&userId=jan.novak&isCompleted=false
+Accept: application/json
+
 ### Nový úkol
 POST {{UAI.ZeroVP.API_HostAddress}}/api/todos
 Content-Type: application/json
@@ -43,6 +51,18 @@ Content-Type: application/json
   "title": "Vyzkoušet docker build",
   "description": "Postavit image z vícefázového Dockerfile.",
   "priority": "High"
+}
+
+### Nový úkol se štítkem projektu
+POST {{UAI.ZeroVP.API_HostAddress}}/api/todos
+Content-Type: application/json
+
+{
+  "title": "Přidat štítek projektu",
+  "description": "Ověřit uložení a filtrování úkolu podle projektu.",
+  "priority": "Normal",
+  "userId": "jan.novak",
+  "project": "ZeroVP"
 }
 
 ### Neplatný vstup – vrátí 400 s ValidationProblemDetails

@@ -110,11 +110,11 @@ V repozitáři je k dispozici vícefázový `Dockerfile` a `compose.yaml` pro sp
 
 | Metoda | Cesta | Popis |
 |---|---|---|
-| `GET` | `/api/todos` | Seznam úkolů; volitelný filtr `?isCompleted=true\|false` a filtr uživatele `?userId=...` |
+| `GET` | `/api/todos` | Seznam úkolů; volitelné filtry `?isCompleted=true\|false`, `?userId=...` a `?project=...` |
 | `GET` | `/api/todos/{id}` | Detail úkolu |
-| `POST` | `/api/todos` | Založení úkolu (volitelně s `userId`) → `201 Created` + hlavička `Location` |
-| `POST` | `/api/todos/repeat` | Založení týdenní řady úkolů → `201 Created` + hlavička `Location` na `/api/todos` |
-| `PUT` | `/api/todos/{id}` | Úplná aktualizace úkolu (včetně `userId`) |
+| `POST` | `/api/todos` | Založení úkolu (volitelně s `userId` a `project`) → `201 Created` + hlavička `Location` |
+| `POST` | `/api/todos/repeat` | Založení týdenní řady úkolů (volitelně s `userId` a `project`) → `201 Created` + hlavička `Location` na `/api/todos` |
+| `PUT` | `/api/todos/{id}` | Úplná aktualizace úkolu (včetně `userId` a `project`) |
 | `POST` | `/api/todos/{id}/complete` | Označení úkolu za dokončený |
 | `DELETE` | `/api/todos/{id}` | Smazání úkolu → `204 No Content` |
 | `GET` | `/api/info` | Informace o instanci (`instanceId`, `machineName`, `processId`, prostředí, uptime, počet úkolů) |
@@ -133,6 +133,13 @@ Připravené požadavky k odzkoušení jsou v souboru `src/UAI.ZeroVP.API/UAI.Ze
 * **Normalizace:** Bílé znaky na začátku a na konci jsou automaticky ořezány (`Trim()`). Prázdné řetězce nebo řetězce tvořené pouze mezerami se ukládají jako `null` („bez uživatele“).
 * **Filtrování:** Dotaz `GET /api/todos?userId=jan.novak` vrátí pouze úkoly patřící zadanému uživateli. Filtr lze libovolně kombinovat s `?isCompleted=false`. Pokud `userId` není zadán nebo je prázdný, vrátí se úkoly všech uživatelů.
 
+### Štítek projektu a filtrování (`?project=...`)
+
+Úkoly lze označit volitelným štítkem projektu (`project` – např. `"ZeroVP"`):
+* **DTO a validace:** Pole `project` je dostupné v `TodoItemDto`, `CreateTodoItemRequest`, `RepeatTodoItemRequest` a `UpdateTodoItemRequest` s omezením na maximálně 50 znaků (`[StringLength(50)]`). Při překročení limitu vrátí API `400 Bad Request` (`ValidationProblemDetails`).
+* **Normalizace:** Bílé znaky na začátku a na konci jsou automaticky ořezány (`Trim()`). Prázdné řetězce nebo řetězce tvořené pouze bílými znaky se ukládají jako `null` („bez projektu“).
+* **Filtrování:** Dotaz `GET /api/todos?project=ZeroVP` vrátí pouze úkoly patřící zadanému projektu. Porovnání je po ořezání bílých znaků bez rozlišení velikosti písmen (`case-insensitive`, např. `zerovp` odpovídá `ZeroVP`) a filtr lze libovolně kombinovat s `?isCompleted=...` a `?userId=...`. Pokud `project` není zadán nebo je prázdný, vrátí se úkoly ze všech projektů.
+
 ### Týdenní opakování úkolů (`POST /api/todos/repeat`)
 
 Endpoint slouží k hromadnému vytvoření počátečního úkolu a zadaného počtu dalších týdenních opakování v jedné atomické operaci.
@@ -144,6 +151,7 @@ Endpoint slouží k hromadnému vytvoření počátečního úkolu a zadaného p
 - `firstDueAtUtc` (DateTimeOffset, povinný): Datum a čas prvního výskytu v UTC.
 - `repeatCount` (int, povinný, rozsah 1–52): Počet dalších týdenních opakování po prvním termínu.
 - `userId` (string, volitelný, max 200 znaků): Identifikátor uživatele; přiřadí se všem vytvořeným výskytům.
+- `project` (string, volitelný, max 50 znaků): Štítek projektu; přiřadí se všem vytvořeným výskytům.
 
 **Příklad kalkulace termínů:**  
 Zadání například `repeatCount: 3` vytvoří celkem **4 samostatné úkoly**:
@@ -173,6 +181,7 @@ Server vystavuje dva nástroje přistupující přímo k existujícímu rozhran�
    * **Volitelné parametry:**
      * `isCompleted` (boolean, volitelný): `true` = pouze dokončené úkoly, `false` = pouze otevřené úkoly; vynecháno = všechny úkoly bez ohledu na stav.
      * `userId` (string, volitelný): vrátí pouze úkoly zadaného uživatele (např. `"alice"`); vynecháno = úkoly všech uživatelů.
+     * `project` (string, volitelný): vrátí pouze úkoly s tímto štítkem projektu bez rozlišení velikosti písmen (např. `"ZeroVP"`); vynecháno = úkoly ze všech projektů.
 2. **`get_todo`**
    * **Popis:** Vrátí detail jednoho konkrétního úkolu podle jeho jednoznačného identifikátoru.
    * **Parametry:**
@@ -269,10 +278,18 @@ curl http://localhost:5258/api/todos
 # Seznam úkolů konkrétního uživatele
 curl "http://localhost:5258/api/todos?userId=jan.novak&isCompleted=false"
 
+# Seznam úkolů konkrétního projektu (lze kombinovat s userId a isCompleted)
+curl "http://localhost:5258/api/todos?project=ZeroVP"
+
 # Založení jednoho úkolu s uživatelem
 curl -X POST http://localhost:5258/api/todos \
     -H "Content-Type: application/json" \
     -d '{"title":"Napsat Dockerfile","priority":"High","userId":"jan.novak"}'
+
+# Založení jednoho úkolu s uživatelem a štítkem projektu
+curl -X POST http://localhost:5258/api/todos \
+    -H "Content-Type: application/json" \
+    -d '{"title":"Přidat podporu projektů","priority":"Normal","userId":"jan.novak","project":"ZeroVP"}'
 
 # Založení týdenní řady úkolů (první výskyt + 3 opakování = 4 úkoly)
 curl -X POST http://localhost:5258/api/todos/repeat \

@@ -92,7 +92,7 @@ public sealed class McpServerIntegrationTests : IClassFixture<McpTestFixture>
         Assert.Equal(2, tools.Count);
 
         var listTool = Assert.Single(tools, t => t.Name == "list_todos");
-        AssertToolSchemaAndReadOnly(listTool, ["isCompleted", "userId"], []);
+        AssertToolSchemaAndReadOnly(listTool, ["isCompleted", "userId", "project"], []);
 
         var getTool = Assert.Single(tools, t => t.Name == "get_todo");
         AssertToolSchemaAndReadOnly(getTool, ["id"], ["id"]);
@@ -168,6 +168,18 @@ public sealed class McpServerIntegrationTests : IClassFixture<McpTestFixture>
     }
 
     [Fact]
+    public async Task ListTodos_FilteredByProject_AcceptsOptionalProjectArgument()
+    {
+        await using var client = await _fixture.CreateMcpClientAsync();
+
+        var arguments = new Dictionary<string, object?> { ["project"] = "ZeroVP" };
+        var result = await client.CallToolAsync("list_todos", arguments);
+        var tasks = DeserializeToolResult<List<TodoItemDto>>(result);
+
+        Assert.Empty(tasks);
+    }
+
+    [Fact]
     public async Task GetTodo_ExistingId_ReturnsExactTaskDetails()
     {
         await using var client = await _fixture.CreateMcpClientAsync();
@@ -188,6 +200,7 @@ public sealed class McpServerIntegrationTests : IClassFixture<McpTestFixture>
         Assert.Equal(expectedTask.Priority, retrievedTask.Priority);
         Assert.Equal(expectedTask.IsCompleted, retrievedTask.IsCompleted);
         Assert.Equal(expectedTask.UserId, retrievedTask.UserId);
+        Assert.Equal(expectedTask.Project, retrievedTask.Project);
         Assert.Equal(expectedTask.DueAtUtc, retrievedTask.DueAtUtc);
     }
 

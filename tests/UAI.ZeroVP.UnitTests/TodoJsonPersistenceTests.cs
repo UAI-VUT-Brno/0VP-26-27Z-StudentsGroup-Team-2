@@ -47,7 +47,11 @@ public sealed class TodoJsonPersistenceTests : IDisposable
         File.WriteAllText(StorageFilePath, content);
     }
 
-    private static TodoItem CreateItem(string title, bool isCompleted = false, DateTimeOffset? dueAtUtc = null) => new()
+    private static TodoItem CreateItem(
+        string title,
+        bool isCompleted = false,
+        DateTimeOffset? dueAtUtc = null,
+        string? project = null) => new()
     {
         Id = Guid.NewGuid(),
         Title = title,
@@ -57,6 +61,7 @@ public sealed class TodoJsonPersistenceTests : IDisposable
         CreatedAtUtc = Now,
         CompletedAtUtc = isCompleted ? Now.AddHours(1) : null,
         DueAtUtc = dueAtUtc,
+        Project = project,
         UpdatedAtUtc = Now.AddHours(2)
     };
 
@@ -116,6 +121,55 @@ public sealed class TodoJsonPersistenceTests : IDisposable
             Assert.Equal(expected.DueAtUtc, loaded.DueAtUtc);
             Assert.Equal(expected.UpdatedAtUtc, loaded.UpdatedAtUtc);
         }
+    }
+
+    [Fact]
+    public async Task SaveToFileAsync_ThenNewInstance_PreservesProject()
+    {
+        var first = CreateRepository();
+        var withProject = CreateItem("With project", project: "ZeroVP");
+        var withoutProject = CreateItem("Without project", project: null);
+        await first.AddAsync(withProject);
+        await first.AddAsync(withoutProject);
+
+        await first.SaveToFileAsync();
+        var second = CreateRepository();
+
+        Assert.Equal("ZeroVP", (await second.GetByIdAsync(withProject.Id))!.Project);
+        Assert.Null((await second.GetByIdAsync(withoutProject.Id))!.Project);
+    }
+
+    [Fact]
+    public async Task Constructor_LegacyJsonWithoutProjectProperty_LoadsWithNullProject()
+    {
+        var id = Guid.Parse("3fa85f64-5717-4562-b3fc-2c963f66afa6");
+        var legacyJson = """
+            [
+              {
+                "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                "title": "Legacy task",
+                "description": "Created before Project existed",
+                "priority": "Normal",
+                "isCompleted": false,
+                "createdAtUtc": "2026-10-25T08:00:00+00:00",
+                "completedAtUtc": null,
+                "dueAtUtc": null,
+                "userId": "alice",
+                "updatedAtUtc": "2026-10-25T08:00:00+00:00"
+              }
+            ]
+            """;
+        WriteStorageFile(legacyJson);
+
+        var repository = CreateRepository(seedSampleData: true);
+
+        Assert.Equal(1, await repository.CountAsync());
+        var loaded = await repository.GetByIdAsync(id);
+        Assert.NotNull(loaded);
+        Assert.Equal("Legacy task", loaded.Title);
+        Assert.Equal("alice", loaded.UserId);
+        Assert.Null(loaded.Project);
+        VerifyLogged(LogLevel.Error, Times.Never());
     }
 
     [Fact]

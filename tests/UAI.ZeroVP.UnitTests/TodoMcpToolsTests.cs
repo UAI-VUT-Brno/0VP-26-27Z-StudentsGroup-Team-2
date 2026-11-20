@@ -1,4 +1,4 @@
-using ModelContextProtocol;
+﻿using ModelContextProtocol;
 using Moq;
 using UAI.ZeroVP.API.Mcp;
 using UAI.ZeroVP.Data.Abstractions;
@@ -24,7 +24,11 @@ public sealed class TodoMcpToolsTests
         _tools = new TodoMcpTools(_repository.Object);
     }
 
-    private static TodoItem CreateEntity(string title, bool isCompleted = false, string? userId = null) => new()
+    private static TodoItem CreateEntity(
+        string title,
+        bool isCompleted = false,
+        string? userId = null,
+        string? project = null) => new()
     {
         Id = Guid.NewGuid(),
         Title = title,
@@ -32,6 +36,7 @@ public sealed class TodoMcpToolsTests
         CreatedAtUtc = CreatedAt,
         CompletedAtUtc = isCompleted ? CreatedAt : null,
         UserId = userId,
+        Project = project,
         UpdatedAtUtc = CreatedAt
     };
 
@@ -42,7 +47,7 @@ public sealed class TodoMcpToolsTests
     {
         var items = new[] { CreateEntity("First", userId: "alice"), CreateEntity("Second", isCompleted: true) };
         _repository
-            .Setup(r => r.GetAllAsync(null, null, It.IsAny<CancellationToken>()))
+            .Setup(r => r.GetAllAsync(null, null, null, It.IsAny<CancellationToken>()))
             .ReturnsAsync(items);
 
         var result = await _tools.ListTodos();
@@ -61,7 +66,7 @@ public sealed class TodoMcpToolsTests
     {
         var items = new[] { CreateEntity("Task", isCompleted) };
         _repository
-            .Setup(r => r.GetAllAsync(isCompleted, null, It.IsAny<CancellationToken>()))
+            .Setup(r => r.GetAllAsync(isCompleted, null, null, It.IsAny<CancellationToken>()))
             .ReturnsAsync(items);
 
         var result = await _tools.ListTodos(isCompleted: isCompleted);
@@ -77,7 +82,7 @@ public sealed class TodoMcpToolsTests
     {
         var items = new[] { CreateEntity("Alice's task", userId: "alice") };
         _repository
-            .Setup(r => r.GetAllAsync(null, "alice", It.IsAny<CancellationToken>()))
+            .Setup(r => r.GetAllAsync(null, "alice", null, It.IsAny<CancellationToken>()))
             .ReturnsAsync(items);
 
         var result = await _tools.ListTodos(userId: "alice");
@@ -88,10 +93,45 @@ public sealed class TodoMcpToolsTests
     }
 
     [Fact]
+    public async Task ListTodos_FilteredByProject_PassesFilterToRepository()
+    {
+        var items = new[] { CreateEntity("Project task", project: "ZeroVP") };
+        _repository
+            .Setup(r => r.GetAllAsync(null, null, "ZeroVP", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(items);
+
+        var result = await _tools.ListTodos(project: "ZeroVP");
+
+        var dto = Assert.Single(result);
+        Assert.Equal(items[0].Id, dto.Id);
+        Assert.Equal("ZeroVP", dto.Project);
+        _repository.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ListTodos_FilteredByAllParameters_PassesAllFiltersToRepository()
+    {
+        using var cts = new CancellationTokenSource();
+        var items = new[] { CreateEntity("Filtered task", isCompleted: true, userId: "alice", project: "ZeroVP") };
+        _repository
+            .Setup(r => r.GetAllAsync(true, "alice", "ZeroVP", cts.Token))
+            .ReturnsAsync(items);
+
+        var result = await _tools.ListTodos(isCompleted: true, userId: "alice", project: "ZeroVP", cancellationToken: cts.Token);
+
+        var dto = Assert.Single(result);
+        Assert.Equal(items[0].Id, dto.Id);
+        Assert.True(dto.IsCompleted);
+        Assert.Equal("alice", dto.UserId);
+        Assert.Equal("ZeroVP", dto.Project);
+        _repository.VerifyAll();
+    }
+
+    [Fact]
     public async Task ListTodos_EmptyRepository_ReturnsEmptyList()
     {
         _repository
-            .Setup(r => r.GetAllAsync(false, "bob", It.IsAny<CancellationToken>()))
+            .Setup(r => r.GetAllAsync(false, "bob", null, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Array.Empty<TodoItem>());
 
         var result = await _tools.ListTodos(isCompleted: false, userId: "bob");
@@ -121,6 +161,23 @@ public sealed class TodoMcpToolsTests
         Assert.True(result.IsCompleted);
         Assert.Equal(CreatedAt, result.CompletedAtUtc);
         Assert.Equal("alice", result.UserId);
+        _repository.VerifyAll();
+    }
+
+    [Theory]
+    [InlineData("ZeroVP")]
+    [InlineData(null)]
+    public async Task GetTodo_ExistingId_IncludesProjectInDto(string? project)
+    {
+        var entity = CreateEntity("Task with project", project: project);
+        _repository
+            .Setup(r => r.GetByIdAsync(entity.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(entity);
+
+        var result = await _tools.GetTodo(entity.Id);
+
+        Assert.Equal(entity.Id, result.Id);
+        Assert.Equal(project, result.Project);
         _repository.VerifyAll();
     }
 

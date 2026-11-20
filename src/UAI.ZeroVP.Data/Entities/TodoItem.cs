@@ -36,6 +36,9 @@ public sealed class TodoItem
     /// <summary>Volitelný identifikátor uživatele, kterému úkol patří (zatím bez autentizace), nebo <c>null</c>.</summary>
     public string? UserId { get; set; }
 
+    /// <summary>Optional project tag associated with the task, or <c>null</c>.</summary>
+    public string? Project { get; set; }
+
     /// <summary>Interní audit – poslední změna záznamu. Do DTO se nepromítá.</summary>
     public DateTimeOffset UpdatedAtUtc { get; set; }
 
@@ -55,6 +58,7 @@ public sealed class TodoItem
         CompletedAtUtc = CompletedAtUtc,
         DueAtUtc = DueAtUtc,
         UserId = UserId,
+        Project = Project,
         UpdatedAtUtc = UpdatedAtUtc
     };
 }

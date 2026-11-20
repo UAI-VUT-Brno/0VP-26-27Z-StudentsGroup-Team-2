@@ -31,6 +31,7 @@ All other paths in this file and all shell commands are relative to the reposito
 | Developer subagent | [`agents/csharp-developer.md`](agents/csharp-developer.md) + [`prompts/csharp-layer-synthesis.md`](prompts/csharp-layer-synthesis.md) |
 | Repair subagent | [`agents/qa-repair-agent.md`](agents/qa-repair-agent.md) + [`prompts/compiler-test-reflection.md`](prompts/compiler-test-reflection.md) |
 | Release subagent | [`agents/release-agent.md`](agents/release-agent.md) + [`prompts/generate-pr.md`](prompts/generate-pr.md) |
+| Verification helper (Windows) | [`scripts/verify-and-test.ps1`](scripts/verify-and-test.ps1) |
 
 Read both rule files before Stage 1 and pass them to every subagent you invoke.
 If any file from the table is missing, ABORT with reason `skill incomplete: <path>`.
@@ -136,13 +137,20 @@ Run it **once per tier, strictly in dependency order**:
 Skip tiers marked `none`. After each tier run `dotnet build UAI.ZeroVP.sln --configuration Release`.
 A build error is handed to Stage 4 and does **not** stop synthesis of later tiers.
 
-After the last tier, create one commit per tier that changed (for example `feat(...)` for code and
-`test(...)` for tests) as described in `rules/git-workflow.md`.
+After the last tier, on Windows run `powershell -NoProfile -ExecutionPolicy Bypass -File skills/issue-to-pr/scripts/verify-and-test.ps1 -SkipTests`
+to enforce UTF-8 BOM on any `.cs` files edited or created by IDE tools, then create one commit per tier that changed
+(for example `feat(...)` for code and `test(...)` for tests) as described in `rules/git-workflow.md`.
 
 ## Stage 4 – Self-healing test loop
 
 ```bash
 dotnet test UAI.ZeroVP.sln --configuration Release
+```
+
+On Windows, prefer the helper script which enforces UTF-8 BOM on changed `.cs` files, checks `git diff --check`, and outputs structured diagnostics (supporting both English and Czech .NET SDK locales):
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File skills/issue-to-pr/scripts/verify-and-test.ps1
 ```
 
 The loop passes when **all** of these hold:
@@ -166,7 +174,7 @@ the current `git diff main...HEAD` and the attempt number. Then run the test com
    (section *Endpointy* or *MCP Server*) and `src/UAI.ZeroVP.API/UAI.ZeroVP.API.http` describe the change.
    Commit as `docs(...)`.
 2. **Hygiene gates** from `rules/git-workflow.md`: `git diff --check main...HEAD`, UTF-8 BOM on every changed `.cs` file,
-   NuGet vulnerability scan. Any failure → hand it to `qa-repair-agent` once; still failing → ABORT.
+   NuGet vulnerability scan (on Windows, `powershell -NoProfile -ExecutionPolicy Bypass -File skills/issue-to-pr/scripts/verify-and-test.ps1 -CheckOnly -SkipTests` checks both `git diff --check` and UTF-8 BOM). Any failure → hand it to `qa-repair-agent` once; still failing → ABORT.
 3. **Release.** Invoke `release-agent` with `prompts/generate-pr.md` and: issue number and title,
    the Execution Plan, `git log --oneline main..HEAD`, the final test summary, the baseline count
    and the number of repair attempts used. The release agent pushes the branch and opens the PR:

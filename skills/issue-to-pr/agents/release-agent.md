@@ -9,6 +9,7 @@ allowedCommands:
   - "git"
   - "dotnet list UAI.ZeroVP.sln package --vulnerable --include-transitive"
   - "gh pr create"
+  - "powershell -NoProfile -ExecutionPolicy Bypass -File skills/issue-to-pr/scripts/verify-and-test.ps1 -CheckOnly -SkipTests"
 EnableWriteTools: true
 ---
 

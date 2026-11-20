@@ -1,4 +1,4 @@
-namespace UAI.ZeroVP.DTO;
+﻿namespace UAI.ZeroVP.DTO;
 
 /// <summary>
 /// Úkol tak, jak ho API vrací klientovi.
@@ -42,4 +42,8 @@ public sealed record TodoItemDto
     /// <summary>Identifikátor uživatele, kterému úkol patří, nebo <c>null</c>.</summary>
     /// <example>jan.novak</example>
     public string? UserId { get; init; }
+
+    /// <summary>Optional project tag associated with the task, or <c>null</c>.</summary>
+    /// <example>ZeroVP</example>
+    public string? Project { get; init; }
 }

@@ -42,4 +42,9 @@ public sealed record RepeatTodoItemRequest
     /// <example>jan.novak</example>
     [StringLength(200, ErrorMessage = "Identifikátor uživatele smí mít nejvýše 200 znaků.")]
     public string? UserId { get; init; }
+
+    /// <summary>Optional project tag, maximum 50 characters.</summary>
+    /// <example>ZeroVP</example>
+    [StringLength(50, ErrorMessage = "Projekt smí mít nejvýše 50 znaků.")]
+    public string? Project { get; init; }
 }

@@ -20,7 +20,8 @@ public static class TodoMapper
         CreatedAtUtc = entity.CreatedAtUtc,
         CompletedAtUtc = entity.CompletedAtUtc,
         DueAtUtc = entity.DueAtUtc,
-        UserId = entity.UserId
+        UserId = entity.UserId,
+        Project = entity.Project
     };
 
     /// <summary>Vytvoří novou entitu z požadavku na založení úkolu.</summary>
@@ -30,12 +31,13 @@ public static class TodoMapper
     {
         Id = Guid.NewGuid(),
         Title = request.Title.Trim(),
-        Description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description.Trim(),
+        Description = NormalizeOptional(request.Description),
         Priority = request.Priority,
         IsCompleted = false,
         CreatedAtUtc = nowUtc,
         CompletedAtUtc = null,
-        UserId = NormalizeUserId(request.UserId),
+        UserId = NormalizeOptional(request.UserId),
+        Project = NormalizeOptional(request.Project),
         UpdatedAtUtc = nowUtc
     };
 
@@ -50,8 +52,9 @@ public static class TodoMapper
         var firstDueAtUtc = (request.FirstDueAtUtc
             ?? throw new ArgumentException("FirstDueAtUtc je povinné.", nameof(request))).ToUniversalTime();
         var title = request.Title.Trim();
-        var description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description.Trim();
-        var userId = NormalizeUserId(request.UserId);
+        var description = NormalizeOptional(request.Description);
+        var userId = NormalizeOptional(request.UserId);
+        var project = NormalizeOptional(request.Project);
 
         return Enumerable.Range(0, request.RepeatCount + 1)
             .Select(n => new TodoItem
@@ -65,6 +68,7 @@ public static class TodoMapper
                 CompletedAtUtc = null,
                 DueAtUtc = firstDueAtUtc.AddDays(7 * n),
                 UserId = userId,
+                Project = project,
                 UpdatedAtUtc = nowUtc
             })
             .ToList();
@@ -77,16 +81,17 @@ public static class TodoMapper
     public static void ApplyTo(this UpdateTodoItemRequest request, TodoItem entity, DateTimeOffset nowUtc)
     {
         entity.Title = request.Title.Trim();
-        entity.Description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description.Trim();
+        entity.Description = NormalizeOptional(request.Description);
         entity.Priority = request.Priority;
-        entity.UserId = NormalizeUserId(request.UserId);
+        entity.UserId = NormalizeOptional(request.UserId);
+        entity.Project = NormalizeOptional(request.Project);
         entity.SetCompletionState(request.IsCompleted, nowUtc);
         entity.UpdatedAtUtc = nowUtc;
     }
 
-    /// <summary>Ořízne identifikátor uživatele; prázdná hodnota znamená „bez uživatele“ (<c>null</c>).</summary>
-    private static string? NormalizeUserId(string? userId) =>
-        string.IsNullOrWhiteSpace(userId) ? null : userId.Trim();
+    /// <summary>Trims an optional string value; blank values are normalized to <c>null</c>.</summary>
+    private static string? NormalizeOptional(string? value) =>
+        string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 
     /// <summary>Nastaví příznak dokončení a dopočítá čas dokončení.</summary>
     public static void SetCompletionState(this TodoItem entity, bool isCompleted, DateTimeOffset nowUtc)

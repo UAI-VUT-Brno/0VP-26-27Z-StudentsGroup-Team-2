@@ -1,4 +1,4 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using ModelContextProtocol;
 using ModelContextProtocol.Server;
 using UAI.ZeroVP.API.Mapping;
@@ -23,20 +23,21 @@ public sealed class TodoMcpTools
         _repository = repository;
     }
 
-    /// <summary>Returns tasks, optionally filtered by completion status and user.</summary>
+    /// <summary>Returns tasks, optionally filtered by completion status, user, and project.</summary>
     /// <remarks>
     /// Scalability consideration: This listing is unbounded and returns the full matching dataset without pagination.
     /// While suitable for this educational in-memory scope, larger production datasets should introduce cursor-based
     /// pagination or limit/offset parameters to prevent excessive memory usage and LLM context window exhaustion.
     /// </remarks>
     [McpServerTool(Name = "list_todos", ReadOnly = true)]
-    [Description("Lists ToDo tasks sorted by priority and creation time. Optionally filters by completion status and by the user the task belongs to.")]
+    [Description("Lists ToDo tasks sorted by priority and creation time. Optionally filters by completion status, user, and project tag.")]
     public async Task<IReadOnlyList<TodoItemDto>> ListTodos(
         [Description("true = only completed tasks, false = only open tasks; omit for all tasks.")] bool? isCompleted = null,
         [Description("Return only tasks of this user (e.g. \"alice\"); omit for tasks of all users.")] string? userId = null,
+        [Description("Return only tasks with this project tag (case-insensitive, e.g. \"ZeroVP\"); omit for tasks from all projects.")] string? project = null,
         CancellationToken cancellationToken = default)
     {
-        var items = await _repository.GetAllAsync(isCompleted, userId, cancellationToken);
+        var items = await _repository.GetAllAsync(isCompleted, userId, project, cancellationToken);
 
         return items.Select(item => item.ToDto()).ToList();
     }

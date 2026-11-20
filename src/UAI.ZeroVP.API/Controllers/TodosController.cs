@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using UAI.ZeroVP.API.Mapping;
 using UAI.ZeroVP.Data.Abstractions;
 using UAI.ZeroVP.DTO;
@@ -30,16 +30,18 @@ public sealed class TodosController : ControllerBase
     /// <summary>Vrátí seznam úkolů, volitelně filtrovaný podle stavu dokončení a uživatele („Moje úkoly“).</summary>
     /// <param name="isCompleted">Filtr <c>true</c>/<c>false</c>; vynechání znamená bez filtru.</param>
     /// <param name="userId">Identifikátor uživatele; vrátí jen jeho úkoly. Vynechání znamená úkoly všech uživatelů.</param>
+    /// <param name="project">Optional project tag filter (case-insensitive, trimmed comparison); omit for tasks from all projects.</param>
     /// <param name="cancellationToken">Token pro zrušení operace.</param>
     /// <response code="200">Seznam úkolů seřazený podle priority a data vzniku.</response>
     [HttpGet]
     [ProducesResponseType(typeof(IReadOnlyList<TodoItemDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IReadOnlyList<TodoItemDto>>> GetAll(
-        [FromQuery] bool? isCompleted,
-        [FromQuery] string? userId,
-        CancellationToken cancellationToken)
+        [FromQuery] bool? isCompleted = null,
+        [FromQuery] string? userId = null,
+        [FromQuery] string? project = null,
+        CancellationToken cancellationToken = default)
     {
-        var items = await _repository.GetAllAsync(isCompleted, userId, cancellationToken);
+        var items = await _repository.GetAllAsync(isCompleted, userId, project, cancellationToken);
 
         return Ok(items.Select(item => item.ToDto()).ToList());
     }
